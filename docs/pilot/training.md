@@ -18,6 +18,8 @@ This page describes how the pilot models are trained and evaluated. All settings
 
 The noise level of every step is drawn from a generator seeded by the step number, and the batches come from a seeded stream that can start at any step. A run that stops and resumes therefore follows the same path as an uninterrupted run.
 
+Every experiment uses the same fixed seed, 42 (`DEFAULT_SEED` in `src/spheridiff/common/seed.py`), for the model initialisation, the batch stream, the training noise, the evaluation windows and noise, the sensor mask of the sparse task and the bootstrap. A new experiment inherits it by default, and a test checks that no configuration sets another value.
+
 Every step is logged to `steps.jsonl` (loss, learning rate, gradient norm, step and data time, samples per second, memory), and the progress bar shows the live loss, learning rate, samples per second and gradient norm.
 
 ## Saved files
@@ -32,6 +34,8 @@ Each run writes to its own folder (`artifacts/runs/<run name>/`, or `/kaggle/wor
 | `checkpoint.pt` | every `checkpoint_every` steps, replaced each time | everything needed to resume |
 | `ema_weights.pt` | with each checkpoint | the EMA weights used for evaluation |
 | `final.pt` | once, when the last step is done | the final training state |
+| `milestone_<step>.pt` | at 25%, 50% and 75% of the steps (`milestones` in the train config), never replaced | the full training state, so a short learning-rate decay can be started from that point |
+| `windows.jsonl` | with every evaluation | per-window normalised squared error and CRPS of the forecast evaluation, with the window indices, for paired comparisons |
 | `summary.json` | at the end | steps, time, speed, final loss, memory |
 
 A run resumes from `checkpoint.pt` automatically. To collect everything for download, `--package results.zip` on `scripts/train.py` (or `scripts/package_runs.py`) packs all run folders into one archive.
@@ -40,6 +44,17 @@ A run resumes from `checkpoint.pt` automatically. To collect everything for down
 python scripts/train.py --experiment pilot_wind_s
 python scripts/train.py --experiment pilot_spheridiff_b4
 ```
+
+## Comparing learning curves
+
+Both models use the same schedule and total steps, so they can be compared at the same step, and the cosine schedule makes a mid-run value a statement about the model at that point of training, not about a shorter run. `scripts/compare_runs.py --run <run> --references <run> ...` (also run by the Kaggle notebooks) reports for a run against each reference:
+
+- the reference final value as the target, and the first step, sample count and training time at which the run reaches it and stays at or below it for two evaluations in a row;
+- the values at 5%, 10%, 25%, 50% and 100% of training;
+- the mean over the whole curve (trapezoid rule over the steps);
+- the paired difference of the window-level normalised RMSE at the last common step, with a 95% bootstrap interval over the evaluation windows (2,000 resamples).
+
+The results are written to `comparison_<run>_vs_<reference>.json` and `comparison_summary.txt`. The comparison holds at the shared learning rate, and a mid-run value is not the result of a short fully decayed run. That would need a run or a decay branch from a milestone checkpoint.
 
 ## Running on Kaggle
 

@@ -122,6 +122,30 @@ def test_the_archive_is_written_after_a_failure(context, tmp_path):
     assert json.loads((context.runs_root / "status.json").read_text())[0]["returncode"] == 1
 
 
+def test_the_archive_contains_the_run_comparisons(tmp_path):
+    from spheridiff.training.runlog import RunPaths, append_record
+
+    for name, values in (("fast", [0.5, 0.4, 0.3]), ("slow", [0.6, 0.5, 0.4])):
+        paths = RunPaths(tmp_path / "runs", name)
+        append_record(paths.steps, {"step": 1, "loss": 1.0})
+        for index, value in enumerate(values):
+            append_record(
+                paths.evaluations,
+                {"step": 100 * (index + 1), "samples_seen": 1600 * (index + 1), "train_seconds": 10.0 * (index + 1), "nrmse/mean": value},
+            )
+    archive = finalise(tmp_path / "runs", tmp_path / "out.zip", [], ["fast", "slow"], comparisons=[("fast", "slow")])
+    with zipfile.ZipFile(archive) as handle:
+        names = set(handle.namelist())
+    assert {"comparison_fast_vs_slow.json", "comparison_summary.txt", "evaluation_curves.png"} <= names
+    assert "reached at step" in (tmp_path / "runs" / "comparison_summary.txt").read_text(encoding="utf-8")
+
+
+def test_a_failing_comparison_does_not_block_the_archive(tmp_path):
+    archive = finalise(tmp_path / "runs", tmp_path / "out.zip", [], [], comparisons=[("missing", "absent")])
+    assert archive.exists()
+    assert (tmp_path / "runs" / "comparison_error.txt").exists()
+
+
 def test_log_stream_returns_every_new_line_once(tmp_path):
     path = tmp_path / "job.log"
     stream = LogStream(path)

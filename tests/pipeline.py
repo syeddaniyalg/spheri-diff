@@ -1,5 +1,7 @@
 import yaml
 
+from spheridiff.common.seed import DEFAULT_SEED
+
 from helpers import make_cache, make_config
 from spheridiff.data.statistics import build_statistics
 
@@ -45,7 +47,13 @@ def data_dict(cache_root):
 
 
 def train_dict(
-    steps, batch_size=4, evaluate_every=0, fixed_windows=0, learning_rate=3e-3, checkpoint_every=0
+    steps,
+    batch_size=4,
+    evaluate_every=0,
+    fixed_windows=0,
+    learning_rate=3e-3,
+    checkpoint_every=0,
+    milestones=(),
 ):
     return {
         "steps": steps,
@@ -59,6 +67,7 @@ def train_dict(
         "precision": "fp16",
         "evaluate_every": evaluate_every,
         "checkpoint_every": checkpoint_every,
+        "milestones": list(milestones),
         "train_split": "train",
         "fixed_windows": fixed_windows,
         "source_levels": [50, 500, 850, 1000],
@@ -105,6 +114,6 @@ def write_experiment(directory, model, steps=20, **train_options):
         "model": dump(directory / "model.yaml", model),
         "train": dump(directory / "train.yaml", train_dict(steps, **train_options)),
         "evaluation": dump(directory / "evaluation.yaml", full_evaluation_dict()),
-        "seed": 0,
+        "seed": DEFAULT_SEED,
     }
     return dump(directory / "experiment.yaml", spec), cache_root

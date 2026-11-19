@@ -33,6 +33,8 @@ class ForecastAccumulators:
         self.physical_crps = RunningMean()
         self.normalised_crps = RunningMean()
         self.variance = RunningMean()
+        self.window_error = []
+        self.window_crps = []
 
 
 class ForecastEvaluator:
@@ -44,6 +46,7 @@ class ForecastEvaluator:
         self.process, self.names, self.settings = process, names, settings
         self.device, self.autocast_dtype = context.device, context.autocast_dtype
         self.step_hours = context.step_hours
+        self.latest_windows = None
 
     def batches(self):
         batches = ordered_batches(self.dataset, self.indices, self.settings.batch_size)
@@ -71,11 +74,15 @@ class ForecastEvaluator:
         physical_ensemble = self.converter(ensemble)
         mean = ensemble.mean(dim=1)
         physical_mean = physical_ensemble.mean(dim=1)
-        accumulators.normalised_error.add(mean_square_error(mean, truth, self.area))
+        normalised_error = mean_square_error(mean, truth, self.area)
+        normalised_crps = crps_unbiased(ensemble, truth, self.area)
+        accumulators.normalised_error.add(normalised_error)
         accumulators.physical_error.add(mean_square_error(physical_mean, physical_truth, self.area))
-        accumulators.normalised_crps.add(crps_unbiased(ensemble, truth, self.area))
+        accumulators.normalised_crps.add(normalised_crps)
         accumulators.physical_crps.add(crps_unbiased(physical_ensemble, physical_truth, self.area))
         accumulators.variance.add(ensemble_variance(physical_ensemble, self.area))
+        accumulators.window_error.append(normalised_error[:, 1:].mean(dim=(1, 2)).cpu())
+        accumulators.window_crps.append(normalised_crps[:, 1:].mean(dim=(1, 2)).cpu())
 
     def scores(self, accumulators):
         members = self.settings.members
@@ -96,7 +103,15 @@ class ForecastEvaluator:
         for index, batch in enumerate(self.batches()):
             truth, ensemble = self.sample_members(model, batch, index)
             self.accumulate(accumulators, truth, ensemble)
+        self.latest_windows = {
+            "indices": [int(index) for index in self.indices],
+            "nmse": torch.cat(accumulators.window_error).tolist(),
+            "ncrps": torch.cat(accumulators.window_crps).tolist(),
+        }
         return self.scores(accumulators)
+
+    def window_record(self):
+        return self.latest_windows
 
     def evaluate(self, model, include_ssr=False):
         scores = self.forecast(model)

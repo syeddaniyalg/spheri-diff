@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from spheridiff.common.config import read_yaml
+from spheridiff.common.seed import DEFAULT_SEED
 
 PRECISIONS = ("fp16", "bf16", "fp32")
 
@@ -13,7 +14,7 @@ class EvaluationSettings:
     batch_size: int
     levels: tuple
     fields: tuple
-    seed: int = 1234
+    seed: int = DEFAULT_SEED
 
     def __post_init__(self):
         if self.members < 2:
@@ -38,6 +39,7 @@ class TrainSettings:
     train_split: str = "train"
     fixed_windows: int = 0
     max_seconds: float = 0.0
+    milestones: tuple = ()
 
     def __post_init__(self):
         if self.precision not in PRECISIONS:
@@ -46,6 +48,11 @@ class TrainSettings:
     @property
     def warmup_steps(self):
         return int(self.warmup_fraction * self.steps)
+
+    @property
+    def milestone_steps(self):
+        steps = {round(fraction * self.steps) for fraction in self.milestones}
+        return {step for step in steps if 0 < step < self.steps}
 
 
 def evaluation_from_dict(raw):

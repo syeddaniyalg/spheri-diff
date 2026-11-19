@@ -1,9 +1,9 @@
-import torch.nn.functional as functional
+import torch
 from torch import nn
 
 from spheridiff.models.layers.init import zeroed
 from spheridiff.models.layers.norm import RMSNorm
-from spheridiff.models.layers.rope import RotaryEmbedding
+from spheridiff.models.layers.rope import RotaryEmbedding, rotate_half
 
 from .spectral import SpectralMixing
 
@@ -28,17 +28,19 @@ class TemporalAttention(nn.Module):
         self.output = zeroed(nn.Linear(width, width, bias=False))
         self.rotary = RotaryEmbedding(width // heads, (frames,))
 
+    def rotate(self, values, frames):
+        cosine = self.rotary.cosine.to(values.dtype).view(1, frames, 1, 1, -1)
+        sine = self.rotary.sine.to(values.dtype).view(1, frames, 1, 1, -1)
+        return values * cosine + rotate_half(values) * sine
+
     def forward(self, values):
         batch, frames, points, width = values.shape
-        sequences = values.permute(0, 2, 1, 3).reshape(batch * points, frames, width)
-        shaped = self.projection(sequences).view(batch * points, frames, 3, self.heads, -1)
-        query, key, value = shaped.permute(2, 0, 3, 1, 4).unbind(0)
-        attended = functional.scaled_dot_product_attention(
-            self.rotary(query), self.rotary(key), value
-        )
-        merged = attended.transpose(1, 2).reshape(batch * points, frames, width)
-        result = self.output(merged).reshape(batch, points, frames, width)
-        return result.permute(0, 2, 1, 3)
+        shaped = self.projection(values).view(batch, frames, points, 3, self.heads, -1)
+        query, key, value = shaped.unbind(3)
+        query, key = self.rotate(query, frames), self.rotate(key, frames)
+        scores = torch.einsum("btnhd,bsnhd->bnhts", query, key) * query.shape[-1] ** -0.5
+        attended = torch.einsum("bnhts,bsnhd->btnhd", scores.softmax(dim=-1), value)
+        return self.output(attended.reshape(batch, frames, points, width))
 
 
 class SpherIDiffBlock(nn.Module):

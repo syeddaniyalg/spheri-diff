@@ -1,9 +1,12 @@
 import pytest
 import torch
+import torch.nn.functional as functional
 
 from helpers import make_grid, randomise_weights
 from spheridiff.models.context import ModelContext
+from spheridiff.models.layers.norm import RMSNorm
 from spheridiff.models.registry import build_model, count_parameters
+from spheridiff.models.spheridiff.blocks import TemporalAttention
 from spheridiff.models.spheridiff.config import SpherIDiffConfig
 from spheridiff.models.spheridiff.spectral import SpectralMixing
 from spheridiff.sphere.transform import SphericalTransform
@@ -106,6 +109,51 @@ def test_model_is_sensitive_to_frame_order():
     forward = model(noisy, auxiliary)
     reverse = model(noisy[:, order], auxiliary[:, order])
     assert not torch.allclose(forward[:, order], reverse, atol=1e-4)
+
+
+def reference_attention(module, values):
+    batch, frames, points, width = values.shape
+    sequences = values.permute(0, 2, 1, 3).reshape(batch * points, frames, width)
+    shaped = module.projection(sequences).view(batch * points, frames, 3, module.heads, -1)
+    query, key, value = shaped.permute(2, 0, 3, 1, 4).unbind(0)
+    attended = functional.scaled_dot_product_attention(module.rotary(query), module.rotary(key), value)
+    merged = attended.transpose(1, 2).reshape(batch * points, frames, width)
+    return module.output(merged).reshape(batch, points, frames, width).permute(0, 2, 1, 3)
+
+
+def test_temporal_attention_matches_the_scaled_dot_product_reference():
+    torch.manual_seed(0)
+    module = randomise_weights(TemporalAttention(32, 4, 5), 0.3)
+    values = torch.randn(2, 5, 7, 32)
+    assert torch.allclose(module(values), reference_attention(module, values), atol=1e-5)
+
+
+def test_temporal_attention_gradients_match_the_reference():
+    torch.manual_seed(0)
+    module = randomise_weights(TemporalAttention(32, 4, 5), 0.3)
+    values = torch.randn(2, 5, 7, 32, requires_grad=True)
+    module(values).square().sum().backward()
+    fast = values.grad.clone()
+    values.grad = None
+    reference_attention(module, values).square().sum().backward()
+    assert torch.allclose(fast, values.grad, atol=1e-4)
+
+
+def test_fused_norm_matches_the_reference_formula():
+    torch.manual_seed(0)
+    norm = RMSNorm(24)
+    norm.weight.data.uniform_(0.5, 1.5)
+    values = torch.randn(3, 5, 24) * 4.0
+    assert torch.allclose(norm.fused(values), norm.reference(values), atol=1e-6)
+    assert torch.allclose(norm(values), norm.reference(values), atol=1e-6)
+
+
+def test_fused_norm_keeps_low_precision_close_to_the_reference():
+    norm = RMSNorm(24)
+    values = (torch.randn(3, 5, 24) * 4.0).to(torch.bfloat16)
+    fast = norm.fused(values).float()
+    exact = norm.reference(values.float())
+    assert ((fast - exact).norm() / exact.norm()).item() < 1e-2
 
 
 def test_invalid_heads_are_rejected():

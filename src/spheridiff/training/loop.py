@@ -5,13 +5,21 @@ from dataclasses import dataclass
 import torch
 from tqdm import tqdm
 
+from spheridiff.common.seed import DEFAULT_SEED
 from spheridiff.data.batches import random_batches
 from spheridiff.diffusion.objective import denoising_loss
 
 from .checkpoint import load_state, restore_state, trainer_state
 from .ema import ExponentialMovingAverage
 from .precision import autocast_context, build_scaler, resolve_precision
-from .runlog import append_record, read_records, truncate_records, write_summary, save_atomic
+from .runlog import (
+    append_record,
+    milestone_name,
+    read_records,
+    save_atomic,
+    truncate_records,
+    write_summary,
+)
 from .schedule import learning_rate_at
 
 SEED_STRIDE = 1_000_003
@@ -28,7 +36,7 @@ class TrainingParts:
 
 
 class Trainer:
-    def __init__(self, parts, settings, paths, device, seed=0, name="train"):
+    def __init__(self, parts, settings, paths, device, seed=DEFAULT_SEED, name="train"):
         self.parts, self.settings, self.paths = parts, settings, paths
         self.device, self.seed, self.name = device, seed, name
         self.model = parts.model.to(device)
@@ -40,6 +48,7 @@ class Trainer:
         self.step = 0
         self.elapsed = 0.0
         self.stop_at = None
+        self.milestone_steps = settings.milestone_steps
 
     def build_optimizer(self):
         settings = self.settings
@@ -60,13 +69,14 @@ class Trainer:
 
     def prepare(self, resume):
         state = load_state(self.paths.checkpoint, self.device) if resume else None
+        logs = (self.paths.steps, self.paths.evaluations, self.paths.windows)
         if state is None:
-            for path in (self.paths.steps, self.paths.evaluations):
+            for path in logs:
                 path.unlink(missing_ok=True)
             return
         restore_state(self, state)
-        truncate_records(self.paths.steps, self.step)
-        truncate_records(self.paths.evaluations, self.step)
+        for path in logs:
+            truncate_records(path, self.step)
 
     def write_snapshot(self):
         if self.parts.metadata is not None:
@@ -189,6 +199,8 @@ class Trainer:
             self.evaluate()
         if settings.checkpoint_every > 0 and self.step % settings.checkpoint_every == 0 and not done:
             self.save()
+        if self.step in self.milestone_steps:
+            save_atomic(self.paths.root / milestone_name(self.step), trainer_state(self))
 
     def evaluate(self, include_baselines=False):
         evaluator = self.parts.evaluator
@@ -209,7 +221,13 @@ class Trainer:
             **metrics,
         }
         append_record(self.paths.evaluations, record)
+        self.write_windows(evaluator)
         tqdm.write(self.describe(metrics))
+
+    def write_windows(self, evaluator):
+        record = evaluator.window_record() if hasattr(evaluator, "window_record") else None
+        if record:
+            append_record(self.paths.windows, {"step": self.step, **record})
 
     def describe(self, metrics):
         keys = [key for key in self.parts.evaluator.headline if key in metrics]

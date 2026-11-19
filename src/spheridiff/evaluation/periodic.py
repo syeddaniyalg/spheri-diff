@@ -10,3 +10,6 @@ class PeriodicEvaluation:
 
     def baselines(self):
         return self.forecast.baselines()
+
+    def window_record(self):
+        return self.forecast.window_record()

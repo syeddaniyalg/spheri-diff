@@ -13,9 +13,14 @@ class RunPaths:
         self.evaluations = self.root / "evaluations.jsonl"
         self.checkpoint = self.root / "checkpoint.pt"
         self.final = self.root / "final.pt"
+        self.windows = self.root / "windows.jsonl"
         self.weights = self.root / "ema_weights.pt"
         self.summary = self.root / "summary.json"
         self.snapshot = self.root / "config_snapshot.json"
+
+
+def milestone_name(step):
+    return f"milestone_{step:06d}.pt"
 
 
 def append_record(path, record):

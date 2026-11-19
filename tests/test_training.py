@@ -8,6 +8,7 @@ import torch
 
 from pipeline import TINY_SPHERIDIFF, TINY_WIND, write_experiment
 from spheridiff.analysis.package import package_runs
+from spheridiff.common.seed import DEFAULT_SEED
 from spheridiff.experiments.build import build_components, build_full_evaluation, build_trainer
 from spheridiff.experiments.spec import load_experiment
 from spheridiff.evaluation.settings import TASKS, load_full_settings
@@ -124,6 +125,53 @@ def test_interval_checkpoint_is_updated_and_a_final_one_is_kept(tmp_path):
     assert torch.load(resumed.paths.weights, weights_only=False)["step"] == 5
 
 
+def test_milestone_checkpoints_are_kept_and_can_resume(tmp_path):
+    experiment, cache_root = write_experiment(tmp_path, TINY_WIND, steps=8, milestones=(0.25, 0.5, 0.75))
+    spec = load_experiment(experiment)
+    trainer, _ = build_trainer(spec, CPU, tmp_path / "runs", cache_root)
+    trainer.run(resume=False)
+    kept = sorted(path.name for path in trainer.paths.root.glob("milestone_*.pt"))
+    assert kept == ["milestone_000002.pt", "milestone_000004.pt", "milestone_000006.pt"]
+    state = torch.load(trainer.paths.root / "milestone_000004.pt", weights_only=False)
+    assert state["step"] == 4 and {"model", "optimizer", "ema", "scaler"} <= set(state)
+
+
+def test_milestone_steps_ignore_the_ends():
+    settings = load_train_settings("pilot")
+    assert settings.milestone_steps == {11250, 22500, 33750}
+    assert dataclasses.replace(settings, milestones=(0.0, 1.0, 1.5)).milestone_steps == set()
+
+
+def test_per_window_scores_are_logged_at_every_evaluation(tmp_path):
+    experiment, cache_root = write_experiment(tmp_path, TINY_SPHERIDIFF, steps=4, evaluate_every=2)
+    trainer, _ = build_trainer(load_experiment(experiment), CPU, tmp_path / "runs", cache_root)
+    trainer.run(resume=False)
+    records = read_records(trainer.paths.windows)
+    assert [record["step"] for record in records] == [0, 2, 4]
+    for record in records:
+        assert len(record["indices"]) == len(record["nmse"]) == len(record["ncrps"]) == 4
+        assert all(math.isfinite(value) and value >= 0 for value in record["nmse"] + record["ncrps"])
+    assert records[0]["indices"] == records[-1]["indices"]
+    mean_error = math.sqrt(sum(records[-1]["nmse"]) / 4)
+    assert mean_error == pytest.approx(
+        read_records(trainer.paths.evaluations)[-1]["nrmse/mean"], rel=0.35
+    )
+
+
+def test_resuming_truncates_the_window_log(tmp_path):
+    experiment, cache_root = write_experiment(
+        tmp_path, TINY_WIND, steps=6, evaluate_every=2, checkpoint_every=2
+    )
+    spec = load_experiment(experiment)
+    first, _ = build_trainer(spec, CPU, tmp_path / "runs", cache_root)
+    first.stop_at = 2
+    first.run(resume=False)
+    second, _ = build_trainer(spec, CPU, tmp_path / "runs", cache_root)
+    second.run(resume=True)
+    steps = [record["step"] for record in read_records(second.paths.windows)]
+    assert steps == [0, 2, 4, 6]
+
+
 def test_the_time_limit_stops_training_with_a_resumable_checkpoint(tmp_path):
     experiment, cache_root = write_experiment(tmp_path, TINY_WIND, steps=100000)
     spec = load_experiment(experiment)
@@ -218,7 +266,7 @@ def test_pilot_configs_are_consistent():
     assert pilot.evaluation.members >= 2
     for name in ("pilot_wind_s", "pilot_wind_m", "pilot_wind_l", "pilot_spheridiff_b4"):
         spec = load_experiment(name)
-        assert spec.train == "pilot" and spec.seed == 0
+        assert spec.train == "pilot" and spec.seed == DEFAULT_SEED
 
 
 def test_model_sizes_follow_the_planned_ladder():

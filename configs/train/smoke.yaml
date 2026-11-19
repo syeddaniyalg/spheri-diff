@@ -10,6 +10,7 @@ precision: fp16
 evaluate_every: 500
 checkpoint_every: 500
 train_split: train
+milestones: [0.5]
 source_levels: [50, 100, 150, 200, 250, 300, 400, 500, 600, 700, 850, 925, 1000]
 
 evaluation:

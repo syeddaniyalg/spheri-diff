@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from spheridiff.common.config import read_yaml
+from spheridiff.common.seed import DEFAULT_SEED
 
 
 @dataclass(frozen=True)
@@ -10,7 +11,7 @@ class ExperimentSpec:
     model: str
     train: str
     evaluation: str
-    seed: int
+    seed: int = DEFAULT_SEED
     pilot_train: str = "pilot"
 
 

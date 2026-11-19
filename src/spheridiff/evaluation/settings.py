@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from spheridiff.common.config import read_yaml
+from spheridiff.common.seed import DEFAULT_SEED
 
 TASKS = ("spatial_downscaling", "temporal_downscaling", "sparse_reconstruction")
 
@@ -18,7 +19,7 @@ class FullEvaluationSettings:
     noise_variance: float
     cg_iterations: int
     fields: tuple
-    seed: int = 4321
+    seed: int = DEFAULT_SEED
 
     def __post_init__(self):
         if self.members < 2:

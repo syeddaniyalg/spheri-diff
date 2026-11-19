@@ -34,6 +34,10 @@ The proposal leaves some details open. The implementation uses these choices:
 - Temporal attention has 4 heads and a rotary embedding over the frame index.
 - The spectral transform runs in 32-bit precision.
 
+## Speed notes
+
+A profile on the pilot sizes showed that SpherIDiff was limited by memory traffic of element-wise operations on its full-resolution tensors, not by arithmetic. Two changes that keep the mathematics the same were applied: the RMS normalisation uses the fused `torch.nn.functional.rms_norm` when it exists (with the original formula as a fallback), and the five-frame temporal attention is written as two small `einsum` products with a rotary embedding on the frame axis. In a local test they gave about 1.95 times the training speed with the same outputs (relative difference 8e-7 in fp32, and no added error in fp16 beyond the fp16 error of the original). The spectral stage still runs in fp32. Running it in fp16 would be faster still, with a small extra error, and was not adopted.
+
 ## Size comparison
 
 The compute per parameter differs between the models. SpherIDiff applies its channel layers at every grid point without downsampling, so its forward cost is several times that of `wind_s` at a lower parameter count. Parameters, measured speed and training time are all reported.

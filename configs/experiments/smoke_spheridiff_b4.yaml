@@ -3,5 +3,5 @@ data: era5_5p6deg
 model: spheridiff_b4
 train: smoke
 evaluation: smoke
-seed: 0
+seed: 42
 pilot_train: pilot

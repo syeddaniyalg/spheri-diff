@@ -3,4 +3,4 @@ data: era5_5p6deg
 model: wind_l
 train: pilot
 evaluation: pilot
-seed: 0
+seed: 42

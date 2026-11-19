@@ -11,9 +11,10 @@ import pytest
 import yaml
 
 from spheridiff.common.config import CONFIG_ROOT, PROJECT_ROOT, load_data_config
+from spheridiff.common.seed import DEFAULT_SEED
 from spheridiff.data.channels import channel_names
 from spheridiff.evaluation.settings import load_full_settings
-from spheridiff.experiments.spec import load_experiment
+from spheridiff.experiments.spec import ExperimentSpec, load_experiment
 from spheridiff.smoke.stages import STAGES
 from spheridiff.training.settings import load_train_settings
 
@@ -138,6 +139,25 @@ def test_evaluation_fields_exist_in_the_channel_set():
         assert set(load_full_settings(stem).fields) <= set(names)
 
 
+def test_every_experiment_uses_the_standard_seed():
+    assert DEFAULT_SEED == 42
+    for path in (CONFIG_ROOT / "experiments").glob("*.yaml"):
+        assert yaml.safe_load(path.read_text()).get("seed", DEFAULT_SEED) == DEFAULT_SEED, path
+    for path in (CONFIG_ROOT / "train").glob("*.yaml"):
+        evaluation = yaml.safe_load(path.read_text())["evaluation"]
+        assert evaluation.get("seed", DEFAULT_SEED) == DEFAULT_SEED, path
+    for path in (CONFIG_ROOT / "evaluation").glob("*.yaml"):
+        assert yaml.safe_load(path.read_text()).get("seed", DEFAULT_SEED) == DEFAULT_SEED, path
+
+
+def test_defaults_follow_the_standard_seed():
+    assert load_experiment("pilot_wind_s").seed == DEFAULT_SEED
+    assert load_train_settings("pilot").evaluation.seed == DEFAULT_SEED
+    assert load_full_settings("pilot").seed == DEFAULT_SEED
+    spec = ExperimentSpec(name="n", data="d", model="m", train="t", evaluation="e")
+    assert spec.seed == DEFAULT_SEED
+
+
 def test_loss_levels_cover_the_data_levels():
     data = load_data_config("era5_5p6deg")
     levels = set(data.channels.levels)
@@ -151,7 +171,7 @@ def test_command_line_scripts_start():
         "OPENBLAS_NUM_THREADS": "1",
         "OMP_NUM_THREADS": "1",
     }
-    for script in ("train", "evaluate", "smoke", "plot_runs", "prepare_data"):
+    for script in ("train", "evaluate", "smoke", "plot_runs", "compare_runs", "package_runs", "prepare_data"):
         result = subprocess.run(
             [sys.executable, str(PROJECT_ROOT / "scripts" / f"{script}.py"), "--help"],
             capture_output=True,
