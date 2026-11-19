@@ -1,0 +1,13 @@
+split: val
+windows: 2
+members: 2
+ddim_steps: 3
+batch_size: 2
+forecast_frames: 9
+spatial_factor: 4
+sparse_fraction: 0.05
+noise_variance: 0.0015
+cg_iterations: 1
+fields:
+  - 500_geopotential
+  - 2m_temperature

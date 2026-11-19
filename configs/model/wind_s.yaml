@@ -1,0 +1,15 @@
+name: wind
+
+diffusion:
+  noise: gaussian
+  projection: identity
+
+architecture:
+  widths: [64, 128, 128, 128]
+  block_kinds: [res, res, transformer, transformer]
+  blocks_per_level: [1, 1, 1]
+  middle_blocks: 1
+  embedding_dim: 64
+  heads: 4
+  patch_size: 1
+  norm_groups: 32

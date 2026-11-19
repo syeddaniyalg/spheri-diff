@@ -1,0 +1,44 @@
+source:
+  url: gs://weatherbench2/datasets/era5/1959-2022-6h-64x32_equiangular_with_poles_conservative.zarr
+  storage_options:
+    token: anon
+  stored_levels: 13
+
+grid:
+  height: 32
+  width: 64
+
+window:
+  frames: 5
+  step_hours: 6
+
+transforms:
+  precipitation_channels:
+    - total_precipitation_6hr
+
+splits:
+  train: [2010, 2019]
+  val: [2020, 2020]
+  test: [2021, 2021]
+
+channels:
+  pressure_variables:
+    - geopotential
+    - temperature
+    - specific_humidity
+    - u_component_of_wind
+    - v_component_of_wind
+  levels: [250, 500, 700, 850]
+  surface_variables:
+    - 2m_temperature
+    - mean_sea_level_pressure
+    - 10m_u_component_of_wind
+    - 10m_v_component_of_wind
+    - total_precipitation_6hr
+  static_fields:
+    - land_sea_mask
+    - soil_type
+    - geopotential_at_surface
+
+cache:
+  root: artifacts/data/era5_5p6deg

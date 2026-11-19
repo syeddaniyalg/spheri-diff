@@ -1,0 +1,9 @@
+name: spheridiff
+
+diffusion:
+  noise: spectral
+  projection: band_limit
+
+architecture:
+  widths: [128, 256, 256, 256, 128]
+  heads: 4

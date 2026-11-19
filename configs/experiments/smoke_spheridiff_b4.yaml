@@ -1,0 +1,7 @@
+name: smoke_spheridiff_b4
+data: era5_5p6deg
+model: spheridiff_b4
+train: smoke
+evaluation: smoke
+seed: 0
+pilot_train: pilot

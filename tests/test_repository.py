@@ -1,0 +1,161 @@
+import ast
+import io
+import json
+import os
+import subprocess
+import sys
+import tokenize
+from pathlib import Path
+
+import pytest
+import yaml
+
+from spheridiff.common.config import CONFIG_ROOT, PROJECT_ROOT, load_data_config
+from spheridiff.data.channels import channel_names
+from spheridiff.evaluation.settings import load_full_settings
+from spheridiff.experiments.spec import load_experiment
+from spheridiff.smoke.stages import STAGES
+from spheridiff.training.settings import load_train_settings
+
+CODE_FOLDERS = ("src", "scripts", "tests")
+TEXT_FOLDERS = ("src", "scripts", "tests", "configs", "docs", "notebooks")
+FORBIDDEN_NAME = "SI" + "ND"
+AUTO_PROGRESS = "tqdm" + ".auto"
+EM_DASH = chr(0x2014)
+NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_smoke.ipynb"
+PILOT_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot.ipynb"
+NOTEBOOKS = [NOTEBOOK, PILOT_NOTEBOOK]
+
+
+def python_files():
+    for folder in CODE_FOLDERS:
+        yield from (PROJECT_ROOT / folder).rglob("*.py")
+
+
+def text_files():
+    for folder in TEXT_FOLDERS:
+        for path in (PROJECT_ROOT / folder).rglob("*"):
+            if path.is_file() and path.suffix in {".py", ".yaml", ".md", ".ipynb", ".toml"}:
+                yield path
+    yield PROJECT_ROOT / "README.md"
+
+
+def comment_tokens(source):
+    tokens = tokenize.generate_tokens(io.StringIO(source).readline)
+    return [token for token in tokens if token.type == tokenize.COMMENT]
+
+
+@pytest.mark.parametrize("path", list(python_files()), ids=lambda path: str(path.relative_to(PROJECT_ROOT)))
+def test_python_files_have_no_comments_or_docstrings(path):
+    source = path.read_text(encoding="utf-8")
+    assert comment_tokens(source) == []
+    tree = ast.parse(source)
+    nodes = [tree] + [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.ClassDef))]
+    assert [node for node in nodes if ast.get_docstring(node)] == []
+    assert AUTO_PROGRESS not in source
+
+
+def test_text_files_avoid_the_deprecated_name_and_em_dashes():
+    for path in text_files():
+        text = path.read_text(encoding="utf-8")
+        assert FORBIDDEN_NAME not in text, path
+        assert EM_DASH not in text, path
+
+
+def test_every_source_folder_is_a_package():
+    for folder in (PROJECT_ROOT / "src" / "spheridiff").rglob("*"):
+        if folder.is_dir() and folder.name != "__pycache__":
+            assert (folder / "__init__.py").exists(), folder
+
+
+def notebook_source(path):
+    return "\n".join("".join(cell["source"]) for cell in json.loads(path.read_text())["cells"])
+
+
+@pytest.mark.parametrize("path", NOTEBOOKS, ids=lambda path: path.stem)
+def test_notebook_is_valid_and_follows_the_style_rules(path):
+    notebook = json.loads(path.read_text(encoding="utf-8"))
+    code = [cell for cell in notebook["cells"] if cell["cell_type"] == "code"]
+    assert code
+    for cell in code:
+        source = "".join(cell["source"])
+        compile(source, "cell", "exec")
+        assert comment_tokens(source) == []
+        assert AUTO_PROGRESS not in source
+
+
+@pytest.mark.parametrize("path", NOTEBOOKS, ids=lambda path: path.stem)
+def test_notebooks_package_the_results_even_after_a_failure(path):
+    source = notebook_source(path)
+    run_cell = next(
+        "".join(cell["source"])
+        for cell in json.loads(path.read_text())["cells"]
+        if cell["cell_type"] == "code" and "ParallelRunner(" in "".join(cell["source"])
+    )
+    assert run_cell.index("try:") < run_cell.index("RUNNER.run()") < run_cell.index("finally:")
+    assert run_cell.index("finally:") < run_cell.index("finalise(")
+    assert "CUDA_VISIBLE_DEVICES" not in source
+    assert "assign_queues" in source and "refresh_archive" in source
+
+
+def test_smoke_notebook_refers_to_existing_files_and_experiments():
+    source = notebook_source(NOTEBOOK)
+    assert (PROJECT_ROOT / "scripts" / "smoke.py").exists()
+    for name in ("smoke_wind_s", "smoke_spheridiff_b4"):
+        assert name in source
+        assert (CONFIG_ROOT / "experiments" / f"{name}.yaml").exists()
+    for stage in STAGES:
+        assert f'"{stage}"' in source
+
+
+def test_pilot_notebook_runs_wind_and_spheridiff_on_separate_queues():
+    source = notebook_source(PILOT_NOTEBOOK)
+    for name in ("pilot_wind_s", "pilot_wind_m", "pilot_wind_l", "pilot_spheridiff_b4"):
+        assert name in source
+        assert (CONFIG_ROOT / "experiments" / f"{name}.yaml").exists()
+    assert "[[train_job(name) for name in WIND_EXPERIMENTS], [train_job(name) for name in SPHERIDIFF_EXPERIMENTS]]" in source
+
+
+@pytest.mark.parametrize("path", sorted(CONFIG_ROOT.rglob("*.yaml")), ids=lambda path: path.stem)
+def test_configs_parse(path):
+    assert isinstance(yaml.safe_load(path.read_text()), dict)
+
+
+def test_experiments_resolve_to_existing_configs():
+    for path in (CONFIG_ROOT / "experiments").glob("*.yaml"):
+        spec = load_experiment(path.stem)
+        for folder, name in (("data", spec.data), ("model", spec.model), ("train", spec.train)):
+            assert (CONFIG_ROOT / folder / f"{name}.yaml").exists(), path
+        assert (CONFIG_ROOT / "evaluation" / f"{spec.evaluation}.yaml").exists()
+        assert (CONFIG_ROOT / "train" / f"{spec.pilot_train}.yaml").exists()
+
+
+def test_evaluation_fields_exist_in_the_channel_set():
+    names = channel_names(load_data_config("era5_5p6deg").channels)
+    for stem in ("pilot", "smoke", "overfit"):
+        assert set(load_train_settings(stem).evaluation.fields) <= set(names)
+    for stem in ("pilot", "smoke"):
+        assert set(load_full_settings(stem).fields) <= set(names)
+
+
+def test_loss_levels_cover_the_data_levels():
+    data = load_data_config("era5_5p6deg")
+    levels = set(data.channels.levels)
+    for stem in ("pilot", "smoke", "overfit"):
+        assert levels <= set(load_train_settings(stem).source_levels)
+
+
+def test_command_line_scripts_start():
+    environment = {
+        "PYTHONPATH": str(PROJECT_ROOT / "src"),
+        "OPENBLAS_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+    }
+    for script in ("train", "evaluate", "smoke", "plot_runs", "prepare_data"):
+        result = subprocess.run(
+            [sys.executable, str(PROJECT_ROOT / "scripts" / f"{script}.py"), "--help"],
+            capture_output=True,
+            text=True,
+            env={**os.environ, **environment},
+        )
+        assert result.returncode == 0, (script, result.stderr)

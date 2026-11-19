@@ -1,0 +1,7 @@
+name: smoke_wind_s
+data: era5_5p6deg
+model: wind_s
+train: smoke
+evaluation: smoke
+seed: 0
+pilot_train: pilot

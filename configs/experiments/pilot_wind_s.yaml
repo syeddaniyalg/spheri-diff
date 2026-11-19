@@ -1,0 +1,6 @@
+name: pilot_wind_s
+data: era5_5p6deg
+model: wind_s
+train: pilot
+evaluation: pilot
+seed: 0

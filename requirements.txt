@@ -1,0 +1,10 @@
+numpy
+torch
+pyyaml
+tqdm
+matplotlib
+xarray
+zarr
+gcsfs
+fsspec
+pytest

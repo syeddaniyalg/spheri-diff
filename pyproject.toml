@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spheridiff"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = ["numpy", "torch", "pyyaml", "tqdm"]
+
+[project.optional-dependencies]
+data = ["xarray", "zarr", "gcsfs", "fsspec"]
+plots = ["matplotlib"]
+dev = ["pytest", "matplotlib", "nbformat"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "tests"]
+addopts = "-m 'not gpu'"
+markers = ["gpu: tests that need a CUDA device and the local data cache"]
