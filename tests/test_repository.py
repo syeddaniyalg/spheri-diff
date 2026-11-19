@@ -26,7 +26,8 @@ AUTO_PROGRESS = "tqdm" + ".auto"
 EM_DASH = chr(0x2014)
 NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_smoke.ipynb"
 PILOT_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot.ipynb"
-NOTEBOOKS = [NOTEBOOK, PILOT_NOTEBOOK]
+TIMEMATCHED_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_timematched.ipynb"
+NOTEBOOKS = [NOTEBOOK, PILOT_NOTEBOOK, TIMEMATCHED_NOTEBOOK]
 
 
 def python_files():
@@ -111,10 +112,11 @@ def test_smoke_notebook_refers_to_existing_files_and_experiments():
 
 
 def test_pilot_notebooks_run_the_final_evaluation_after_the_training():
-    source = notebook_source(PILOT_NOTEBOOK)
-    assert "final_job(" in source and "EVALUATION_RESERVE_MINUTES" in source
-    assert source.index("RUNNER.run()") < source.index("EVALUATOR.run()") < source.index("finally:")
-    assert "final_names=" in source and "TRAINING_DEADLINE" in source
+    for path in (PILOT_NOTEBOOK, TIMEMATCHED_NOTEBOOK):
+        source = notebook_source(path)
+        assert "final_job(" in source and "EVALUATION_RESERVE_MINUTES" in source
+        assert source.index("RUNNER.run()") < source.index("EVALUATOR.run()") < source.index("finally:")
+        assert "final_names=" in source and "TRAINING_DEADLINE" in source
     assert "final_job" not in notebook_source(NOTEBOOK)
 
 
@@ -125,10 +127,14 @@ def test_the_final_protocol_fields_exist_in_the_channel_set():
     assert protocol.split == "test" and protocol.split not in ("train", "val")
 
 
-def test_the_pilot_notebook_includes_the_extended_wind_run_after_the_other_wind_runs():
-    source = notebook_source(PILOT_NOTEBOOK)
-    assert source.index('"pilot_wind_l"') < source.index('"pilot_wind_l_long"')
+def test_time_matched_notebook_is_separate_and_compares_the_final_errors():
+    source = notebook_source(TIMEMATCHED_NOTEBOOK)
+    assert "[[train_job(RUN_NAME)]]" in source
+    assert 'RUN_NAME = "pilot_wind_l_long"' in source
+    assert "pilot_timematched_results.zip" in source
+    assert "reference_root=REFERENCE_ROOT" in source and "at_final=True" in source
     assert (CONFIG_ROOT / "experiments" / "pilot_wind_l_long.yaml").exists()
+    assert "smoke" not in source
 
 
 def test_time_matched_config_changes_only_the_length():

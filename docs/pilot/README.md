@@ -6,7 +6,7 @@ The pilot experiment is a small first experiment with SpherIDiff, run before a f
 
 - **Dataset**: the data used by the pilot, summarised in [Dataset](#dataset) below. The source, channels, cache layout and script options are in [docs/data/era5_5p6deg.md](../data/era5_5p6deg.md).
 - **Models**: the three baseline sizes and the SpherIDiff configuration, with their parameter counts and the design choices that were made. See [models.md](models.md).
-- **Training and evaluation**: the shared training settings, the saved files, the parallel background runs on Kaggle, the extended WIND-L run, the evaluation during training, and the full evaluation after training. See [training.md](training.md).
+- **Training and evaluation**: the shared training settings, the saved files, the parallel background runs on Kaggle, the separate time-matched WIND-L run, the evaluation during training, and the full evaluation after training. See [training.md](training.md).
 - **Final evaluation**: the fixed protocol on the held-out test year, covering forecasting and five reconstruction tasks, each with and without guidance. See [final_evaluation.md](final_evaluation.md).
 - **Smoke test**: the short checks of both models before the pilot run, and the Kaggle notebook that runs them. See [smoke.md](smoke.md).
 - **Comparison with WIND**: the baseline comparison, summarised in [Comparison with WIND](#comparison-with-wind) below.
