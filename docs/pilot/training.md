@@ -66,13 +66,21 @@ The main pilot compares the models at equal steps and samples, which favours the
 - **Comparison.** When the output of the main pilot is attached as a Kaggle input, the notebook compares the run with `pilot_spheridiff_b4` and `pilot_wind_l`. Here the paired difference uses the last evaluation of each run, because the step counts differ, and the figures show the references together with the run.
 - **Smoke test.** It is not part of the smoke test.
 
+## Shorter SpherIDiff run
+
+To test whether SpherIDiff keeps up with WIND-L when both get about the same wall-clock time, `spheridiff_b4` is also trained for fewer steps as `pilot_spheridiff_b4_short` (`configs/experiments/pilot_spheridiff_b4_short.yaml`, train config `pilot_short`).
+
+- **Setting.** It differs from the pilot only in length: 7,500 steps instead of 45,000, with evaluations and checkpoints every 375 steps, and its own full cosine schedule.
+- **Time match.** The step count is an estimate: about 1.7 hours for `wind_l` (not measured on the T4) at 0.81 seconds per step for SpherIDiff. It should be adjusted when the time of `wind_l` is known.
+- **Notebook.** It is not part of the pilot notebook.
+
 ## Running on Kaggle
 
 The notebooks `notebooks/kaggle_pilot.ipynb` and `notebooks/kaggle_smoke.ipynb` run the jobs in the background, as a saved version that Kaggle executes from start to end. Both use the runner in `src/spheridiff/kaggle/`.
 
 - **Parallel GPUs.** The three WIND sizes form one queue for the first GPU, and SpherIDiff forms a second queue for the second GPU. Each job is a separate process with `CUDA_VISIBLE_DEVICES` set to its GPU. With one GPU, the queues are joined and run one after another.
 - **Logs.** Every job writes its own log to `runs/_logs/<job>.log`. The notebook prints every line of every running job as soon as it appears, with the elapsed time, GPU and job name, and appends the same lines to `runs/_logs/parallel.log`. The progress bars refresh at most once per second (`TQDM_MININTERVAL=1`), so a long run produces a large log.
-- **Time limit.** `SESSION_HOURS` sets the session length (9 hours by default, see below). Jobs receive `--max-seconds`, so they stop with a resumable checkpoint about ten minutes before the deadline, and the runner ends any process that is still running at the deadline.
+- **Time limit.** The pilot notebooks set no time limit, and the jobs run until Kaggle ends the session. The runner accepts an optional deadline: when one is given, as in the smoke notebook (`SESSION_HOURS`), jobs receive `--max-seconds`, so they stop with a resumable checkpoint about ten minutes before the deadline, and the runner ends any process that is still running at the deadline.
 - **Results.** The runs, the status file, the figures and the logs are written under `/kaggle/working/runs`, and one archive (`pilot_results.zip` or `smoke_results.zip`) is written next to it. The run and the packing share one cell with `try` and `finally`, so the archive is produced when a job fails or the cell is interrupted. The archive is also refreshed every 30 minutes.
 
 Some Kaggle facts could not be confirmed from the official documentation. Secondary sources give a session limit of 9 or 12 hours, a weekly GPU quota of about 30 hours, and an output folder limit of about 20 GB. They also say that a saved version is a batch session without the inactivity limit, and that its files in `/kaggle/working` are kept when it ends. It is not confirmed what is kept when Kaggle stops a version at its time limit, which is why the archive is refreshed during the run and the deadline is set below the limit. The values should be checked in the Kaggle documentation.
@@ -95,7 +103,7 @@ The fixed protocol used for the final comparison of the models is described in [
 `scripts/evaluate.py` loads the EMA weights and runs, on the test year:
 
 - forecasting with rolled windows up to 5 days, reporting RMSE, CRPS and spread-skill ratio;
-- spatial downscaling by a factor of 4, temporal downscaling from a one-frame mean, and sparse reconstruction from 5% of the grid points, each solved with moment matching posterior sampling (15 DDIM steps, 2 conjugate gradient iterations, observation variance 0.0015);
+- spatial downscaling by a factor of 4, temporal downscaling from a one-frame mean, and sparse reconstruction from 5% of the grid points, each solved with moment matching posterior sampling (15 DDIM steps, 2 iterations of the linear solver (GMRES), observation variance 0.0015);
 - for each task, the RMSE of the ensemble mean and of a simple reference (upsampling, repetition, or zeros away from the sensors).
 
 ```

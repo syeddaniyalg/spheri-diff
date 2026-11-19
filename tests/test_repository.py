@@ -114,9 +114,9 @@ def test_smoke_notebook_refers_to_existing_files_and_experiments():
 def test_pilot_notebooks_run_the_final_evaluation_after_the_training():
     for path in (PILOT_NOTEBOOK, TIMEMATCHED_NOTEBOOK):
         source = notebook_source(path)
-        assert "final_job(" in source and "EVALUATION_RESERVE_MINUTES" in source
+        assert "final_job(" in source and "SESSION_HOURS" not in source
         assert source.index("RUNNER.run()") < source.index("EVALUATOR.run()") < source.index("finally:")
-        assert "final_names=" in source and "TRAINING_DEADLINE" in source
+        assert "final_names=" in source and "DEADLINE" not in source
     assert "final_job" not in notebook_source(NOTEBOOK)
 
 
