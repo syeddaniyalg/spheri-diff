@@ -29,5 +29,9 @@ class SphericalTransform(nn.Module):
             flat = coefficients.float() @ self.synthesis
             return flat.unflatten(-1, (self.height, self.width))
 
+    def synthesis_adjoint(self, field):
+        with torch.autocast(device_type=field.device.type, enabled=False):
+            return field.float().flatten(-2) @ self.synthesis.T
+
     def band_limit(self, field):
         return self.synthesise(self.analyse(field))

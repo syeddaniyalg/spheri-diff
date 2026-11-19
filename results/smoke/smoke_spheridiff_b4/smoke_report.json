@@ -1,0 +1,47 @@
+{
+  "experiment": "smoke_spheridiff_b4",
+  "device": "cuda",
+  "static": {
+    "passed": true,
+    "parameters": 1601561,
+    "output_shape": [
+      2,
+      5,
+      25,
+      32,
+      64
+    ]
+  },
+  "overfit": {
+    "passed": true,
+    "loss_ratio": 0.02827976723526217,
+    "final_nrmse": 0.409757137298584,
+    "mean_baseline_nrmse": 0.9813234210014343
+  },
+  "short": {
+    "passed": true,
+    "loss_ratio": 0.06958569373291487,
+    "skipped_fraction": 0.0,
+    "final_nrmse": 0.4112880229949951,
+    "mean_baseline_nrmse": 0.9873010516166687,
+    "persistence_nrmse": 0.395957887172699
+  },
+  "resume": {
+    "passed": true,
+    "gap_ratio": 0.0
+  },
+  "tasks": {
+    "passed": true,
+    "values": 68
+  },
+  "timing": {
+    "passed": true,
+    "samples_per_second": 19.742538115690667,
+    "pilot_steps": 45000,
+    "training_hours": 10.130409718750757,
+    "evaluation_hours": 0.18023013850077998,
+    "total_hours": 10.310639857251537,
+    "total_hours_with_margin": 12.372767828701845
+  },
+  "passed": true
+}

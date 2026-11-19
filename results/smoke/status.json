@@ -1,0 +1,14 @@
+[
+  {
+    "job": "smoke_wind_s",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 292.95936489105225
+  },
+  {
+    "job": "smoke_spheridiff_b4",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 1881.2425401210785
+  }
+]

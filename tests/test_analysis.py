@@ -88,11 +88,31 @@ def test_paired_bootstrap_separates_a_clear_difference(tmp_path):
     write_curve(tmp_path, "better", [0.5, 0.4], windows=list(base * 0.64))
     write_curve(tmp_path, "worse", [0.6, 0.5], windows=list(base))
     paired = compare_runs(tmp_path, "better", "worse")["paired"]
-    assert paired["step"] == 200 and paired["windows"] == 40
+    assert paired["run_step"] == paired["reference_step"] == 200 and paired["windows"] == 40
     assert paired["high"] < 0 < -paired["low"]
     assert paired["fraction_run_better"] > 0.99
     same = compare_runs(tmp_path, "worse", "worse")["paired"]
     assert same["difference"] == 0.0 and same["low"] == 0.0 and same["high"] == 0.0
+
+
+def test_final_comparison_uses_each_runs_own_last_evaluation(tmp_path):
+    generator = np.random.default_rng(1)
+    base = generator.uniform(0.2, 0.4, 30)
+    write_curve(tmp_path, "long", [0.6, 0.5, 0.45, 0.4, 0.35, 0.3], windows=list(base * 0.5))
+    write_curve(tmp_path, "short", [0.55, 0.45], windows=list(base))
+    common = compare_runs(tmp_path, "long", "short")["paired"]
+    final = compare_runs(tmp_path, "long", "short", at_final=True)["paired"]
+    assert common["run_step"] == common["reference_step"] == 200
+    assert (final["run_step"], final["reference_step"]) == (600, 200)
+    assert final["high"] < 0
+
+
+def test_references_can_come_from_another_folder(tmp_path):
+    write_curve(tmp_path / "own", "run", [0.5, 0.4, 0.3])
+    write_curve(tmp_path / "other", "reference", [0.6, 0.5, 0.4])
+    result = compare_runs(tmp_path / "own", "run", "reference", reference_root=tmp_path / "other")
+    assert result["target"] == pytest.approx(0.4)
+    assert result["crossing"]["step"] == 200
 
 
 def test_paired_bootstrap_needs_matching_windows(tmp_path):

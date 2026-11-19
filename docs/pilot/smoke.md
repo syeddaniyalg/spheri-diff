@@ -18,7 +18,7 @@ python scripts/smoke.py --experiment smoke_spheridiff_b4
 | `tasks` | runs forecasting and the three guided tasks on two windows | every path runs and every value is finite |
 | `timing` | extrapolates the measured speed to the pilot settings | reports samples per second, hours of training and evaluation, and the total with a 20% margin |
 
-The thresholds are in `src/spheridiff/smoke/criteria.py`. They are first estimates, because no smoke run has been made yet.
+The thresholds are in `src/spheridiff/smoke/criteria.py`. They were set before the first smoke run. The results of that run, in which all stages passed, are in [results/smoke/README.md](../../results/smoke/README.md).
 
 ## Outputs
 

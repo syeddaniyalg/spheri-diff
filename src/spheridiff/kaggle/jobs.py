@@ -19,5 +19,10 @@ def train_job(experiment):
     return Job(experiment, "train.py", ("--experiment", experiment), budgeted=True)
 
 
+def final_job(experiment, protocol="final_v1"):
+    arguments = ("--experiments", experiment, "--protocol", protocol)
+    return Job(f"final_{experiment}", "final_evaluation.py", arguments)
+
+
 def smoke_job(experiment):
     return Job(experiment, "smoke.py", ("--experiment", experiment))

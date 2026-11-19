@@ -4,7 +4,8 @@ import torch
 
 from helpers import make_grid
 from spheridiff.data.statistics import Statistics
-from spheridiff.diffusion.guidance import MMPSDenoiser, conjugate_gradient
+from spheridiff.diffusion.guidance import MMPSDenoiser
+from spheridiff.diffusion.solvers import conjugate_gradient
 from spheridiff.diffusion.objective import denoising_loss, fixed_level_loss
 from spheridiff.diffusion.operators import (
     SparseMask,

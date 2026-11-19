@@ -2,8 +2,13 @@ import math
 
 import torch
 
+from .covariance import IdentityCovariance, SpectralCovariance
+
 
 class GaussianNoise:
+    def covariance(self, device):
+        return IdentityCovariance()
+
     def sample(self, shape, device, generator=None):
         return torch.randn(shape, device=device, generator=generator)
 
@@ -11,6 +16,9 @@ class GaussianNoise:
 class SpectralNoise:
     def __init__(self, transform):
         self.transform = transform
+
+    def covariance(self, device):
+        return SpectralCovariance(self.transform.to(device))
 
     def sample(self, shape, device, generator=None):
         transform = self.transform.to(device)

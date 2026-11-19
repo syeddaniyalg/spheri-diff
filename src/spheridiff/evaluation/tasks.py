@@ -50,6 +50,8 @@ class TaskEvaluator:
                 observation,
                 self.settings.noise_variance,
                 self.settings.cg_iterations,
+                self.settings.solver,
+                self.process.noise.covariance(self.device),
             )
             generator = torch.Generator(device=self.device)
             generator.manual_seed(self.settings.seed + SEED_STRIDE * batch_index + member)

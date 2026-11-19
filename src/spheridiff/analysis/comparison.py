@@ -60,34 +60,47 @@ def window_scores(runs_root, name):
     return {record["step"]: record for record in records}
 
 
-def common_step(first, second):
-    shared = sorted(set(first) & set(second))
-    return shared[-1] if shared else None
+def compared_steps(run_windows, reference_windows, at_final):
+    if at_final:
+        return (max(run_windows), max(reference_windows)) if run_windows and reference_windows else None
+    shared = sorted(set(run_windows) & set(reference_windows))
+    return (shared[-1], shared[-1]) if shared else None
 
 
-def paired_bootstrap(runs_root, run, reference, seed=DEFAULT_SEED):
-    run_windows, reference_windows = window_scores(runs_root, run), window_scores(runs_root, reference)
-    step = common_step(run_windows, reference_windows)
-    if step is None or run_windows[step]["indices"] != reference_windows[step]["indices"]:
-        return None
-    errors = np.array(run_windows[step]["nmse"]), np.array(reference_windows[step]["nmse"])
-    choices = np.random.default_rng(seed).integers(0, len(errors[0]), (RESAMPLES, len(errors[0])))
-    resampled = np.sqrt(errors[0][choices].mean(axis=1)) - np.sqrt(errors[1][choices].mean(axis=1))
+def bootstrap_interval(run_errors, reference_errors, seed):
+    count = len(run_errors)
+    choices = np.random.default_rng(seed).integers(0, count, (RESAMPLES, count))
+    resampled = np.sqrt(run_errors[choices].mean(axis=1)) - np.sqrt(reference_errors[choices].mean(axis=1))
     edge = (1.0 - CONFIDENCE) / 2.0
     low, high = np.quantile(resampled, [edge, 1.0 - edge])
+    return float(low), float(high), float((resampled < 0).mean())
+
+
+def paired_bootstrap(runs_root, run, reference, seed=DEFAULT_SEED, at_final=False, reference_root=None):
+    run_windows = window_scores(runs_root, run)
+    reference_windows = window_scores(reference_root or runs_root, reference)
+    steps = compared_steps(run_windows, reference_windows, at_final)
+    if steps is None:
+        return None
+    first, second = run_windows[steps[0]], reference_windows[steps[1]]
+    if first["indices"] != second["indices"]:
+        return None
+    run_errors, reference_errors = np.array(first["nmse"]), np.array(second["nmse"])
+    low, high, better = bootstrap_interval(run_errors, reference_errors, seed)
     return {
-        "step": step,
-        "windows": len(errors[0]),
-        "difference": float(np.sqrt(errors[0].mean()) - np.sqrt(errors[1].mean())),
-        "low": float(low),
-        "high": float(high),
-        "fraction_run_better": float((resampled < 0).mean()),
+        "run_step": steps[0],
+        "reference_step": steps[1],
+        "windows": len(run_errors),
+        "difference": float(np.sqrt(run_errors.mean()) - np.sqrt(reference_errors.mean())),
+        "low": low,
+        "high": high,
+        "fraction_run_better": better,
     }
 
 
-def compare_runs(runs_root, run, reference, key=HEADLINE):
+def compare_runs(runs_root, run, reference, key=HEADLINE, reference_root=None, at_final=False):
     run_records = evaluations_of(runs_root, run, key)
-    reference_records = evaluations_of(runs_root, reference, key)
+    reference_records = evaluations_of(reference_root or runs_root, reference, key)
     level = reference_records[-1][key]
     return {
         "run": run,
@@ -104,7 +117,7 @@ def compare_runs(runs_root, run, reference, key=HEADLINE):
             "reference": curve_area(reference_records, key),
         },
         "final": {"run": run_records[-1][key], "reference": reference_records[-1][key]},
-        "paired": paired_bootstrap(runs_root, run, reference),
+        "paired": paired_bootstrap(runs_root, run, reference, at_final=at_final, reference_root=reference_root),
     }
 
 
@@ -131,7 +144,8 @@ def format_comparison(result):
     paired = result["paired"]
     if paired is not None:
         lines.append(
-            f"  paired difference at step {paired['step']}: {paired['difference']:+.4f} "
-            f"(95% interval {paired['low']:+.4f} to {paired['high']:+.4f}, {paired['windows']} windows)"
+            f"  paired difference at step {paired['run_step']} against step {paired['reference_step']}: "
+            f"{paired['difference']:+.4f} (95% interval {paired['low']:+.4f} to {paired['high']:+.4f}, "
+            f"{paired['windows']} windows)"
         )
     return "\n".join(lines)

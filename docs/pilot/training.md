@@ -56,6 +56,16 @@ Both models use the same schedule and total steps, so they can be compared at th
 
 The results are written to `comparison_<run>_vs_<reference>.json` and `comparison_summary.txt`. The comparison holds at the shared learning rate, and a mid-run value is not the result of a short fully decayed run. That would need a run or a decay branch from a milestone checkpoint.
 
+## Time-matched WIND-L run
+
+The main pilot compares the models at equal steps and samples, which favours the model that is slower per sample. To test whether a lead of SpherIDiff remains when WIND gets the same wall-clock time, the largest WIND model is trained once more as `pilot_wind_l_long` (`configs/experiments/pilot_wind_l_long.yaml`, train config `pilot_long`).
+
+- **Setting.** It differs from the pilot only in length: 135,000 steps instead of 45,000, with evaluations and checkpoints every 6,750 steps, and its own full cosine schedule. The data, batch size, learning rate, EMA, evaluation, seed and milestone fractions are the same, and a test checks this.
+- **Time match.** The step count is an estimate: about 4.6 hours at an assumed 130 samples per second for `wind_l` (not measured on the T4), against about 5.3 hours projected for SpherIDiff. It should be adjusted when the pilot timing is known.
+- **Separate storage.** It is run by its own notebook, `notebooks/kaggle_pilot_timematched.ipynb`, in its own Kaggle session, with its own runs folder and its own archive, `pilot_timematched_results.zip`. Its results are not mixed with the files of the main pilot.
+- **Comparison.** When the output of the main pilot is attached as a Kaggle input, the notebook compares the run with `pilot_spheridiff_b4` and `pilot_wind_l`. Here the paired difference uses the last evaluation of each run, because the step counts differ, and the figures show the references together with the run.
+- **Smoke test.** It is not part of the smoke test.
+
 ## Running on Kaggle
 
 The notebooks `notebooks/kaggle_pilot.ipynb` and `notebooks/kaggle_smoke.ipynb` run the jobs in the background, as a saved version that Kaggle executes from start to end. Both use the runner in `src/spheridiff/kaggle/`.
@@ -79,6 +89,8 @@ At step 0 and at every 5% of the steps, the EMA model is evaluated on fixed vali
 Curves of several runs are drawn with `scripts/plot_runs.py`.
 
 ## Full evaluation after training
+
+The fixed protocol used for the final comparison of the models is described in [final_evaluation.md](final_evaluation.md). The lighter evaluation below (`scripts/evaluate.py`, with the settings named in the experiment file) is kept for quick checks, and the Kaggle notebooks use the fixed protocol.
 
 `scripts/evaluate.py` loads the EMA weights and runs, on the test year:
 

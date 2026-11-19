@@ -140,6 +140,41 @@ def test_the_archive_contains_the_run_comparisons(tmp_path):
     assert "reached at step" in (tmp_path / "runs" / "comparison_summary.txt").read_text(encoding="utf-8")
 
 
+def write_reference_run(root, name, values, windows):
+    from spheridiff.training.runlog import RunPaths, append_record
+
+    paths = RunPaths(root, name)
+    append_record(paths.steps, {"step": 1, "loss": 1.0})
+    for index, value in enumerate(values):
+        step = 100 * (index + 1)
+        append_record(
+            paths.evaluations,
+            {"step": step, "samples_seen": 16 * step, "train_seconds": 2.0 * step, "nrmse/mean": value},
+        )
+        append_record(paths.windows, {"step": step, "indices": [0, 1, 2], "nmse": windows})
+
+
+def test_a_separate_reference_folder_is_compared_and_plotted(tmp_path):
+    write_reference_run(tmp_path / "main", "reference", [0.6, 0.5, 0.4], [0.2, 0.3, 0.25])
+    write_reference_run(tmp_path / "long" / "runs", "long", [0.6, 0.5, 0.45, 0.4, 0.35], [0.1, 0.12, 0.11])
+    archive = finalise(
+        tmp_path / "long" / "runs",
+        tmp_path / "long" / "out.zip",
+        [],
+        ["long"],
+        comparisons=[("long", "reference")],
+        reference_root=tmp_path / "main",
+        at_final=True,
+    )
+    with zipfile.ZipFile(archive) as handle:
+        names = set(handle.namelist())
+    assert {"comparison_long_vs_reference.json", "comparison_summary.txt", "evaluation_curves.png"} <= names
+    assert not any(name.startswith("reference/") for name in names)
+    assert (tmp_path / "long" / "_plot_stage" / "reference" / "evaluations.jsonl").exists()
+    text = (tmp_path / "long" / "runs" / "comparison_summary.txt").read_text(encoding="utf-8")
+    assert "against step 300" in text
+
+
 def test_a_failing_comparison_does_not_block_the_archive(tmp_path):
     archive = finalise(tmp_path / "runs", tmp_path / "out.zip", [], [], comparisons=[("missing", "absent")])
     assert archive.exists()

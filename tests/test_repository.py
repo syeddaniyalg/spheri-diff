@@ -13,6 +13,7 @@ import yaml
 from spheridiff.common.config import CONFIG_ROOT, PROJECT_ROOT, load_data_config
 from spheridiff.common.seed import DEFAULT_SEED
 from spheridiff.data.channels import channel_names
+from spheridiff.evaluation.protocol import load_protocol
 from spheridiff.evaluation.settings import load_full_settings
 from spheridiff.experiments.spec import ExperimentSpec, load_experiment
 from spheridiff.smoke.stages import STAGES
@@ -25,7 +26,8 @@ AUTO_PROGRESS = "tqdm" + ".auto"
 EM_DASH = chr(0x2014)
 NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_smoke.ipynb"
 PILOT_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot.ipynb"
-NOTEBOOKS = [NOTEBOOK, PILOT_NOTEBOOK]
+TIMEMATCHED_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_timematched.ipynb"
+NOTEBOOKS = [NOTEBOOK, PILOT_NOTEBOOK, TIMEMATCHED_NOTEBOOK]
 
 
 def python_files():
@@ -109,6 +111,45 @@ def test_smoke_notebook_refers_to_existing_files_and_experiments():
         assert f'"{stage}"' in source
 
 
+def test_pilot_notebooks_run_the_final_evaluation_after_the_training():
+    for path in (PILOT_NOTEBOOK, TIMEMATCHED_NOTEBOOK):
+        source = notebook_source(path)
+        assert "final_job(" in source and "EVALUATION_RESERVE_MINUTES" in source
+        assert source.index("RUNNER.run()") < source.index("EVALUATOR.run()") < source.index("finally:")
+        assert "final_names=" in source and "TRAINING_DEADLINE" in source
+    assert "final_job" not in notebook_source(NOTEBOOK)
+
+
+def test_the_final_protocol_fields_exist_in_the_channel_set():
+    names = channel_names(load_data_config("era5_5p6deg").channels)
+    protocol = load_protocol("final_v1")
+    assert set(protocol.fields) <= set(names)
+    assert protocol.split == "test" and protocol.split not in ("train", "val")
+
+
+def test_time_matched_notebook_is_separate_and_compares_the_final_errors():
+    source = notebook_source(TIMEMATCHED_NOTEBOOK)
+    assert "[[train_job(RUN_NAME)]]" in source
+    assert 'RUN_NAME = "pilot_wind_l_long"' in source
+    assert "pilot_timematched_results.zip" in source
+    assert "reference_root=REFERENCE_ROOT" in source and "at_final=True" in source
+    assert (CONFIG_ROOT / "experiments" / "pilot_wind_l_long.yaml").exists()
+    assert "smoke" not in source
+
+
+def test_time_matched_config_changes_only_the_length():
+    pilot, long = load_train_settings("pilot"), load_train_settings("pilot_long")
+    assert long.steps == 3 * pilot.steps
+    assert long.evaluate_every == 3 * pilot.evaluate_every
+    assert long.checkpoint_every == 3 * pilot.checkpoint_every
+    for name in ("batch_size", "learning_rate", "min_learning_rate", "warmup_fraction", "weight_decay"):
+        assert getattr(long, name) == getattr(pilot, name)
+    for name in ("gradient_clip", "ema_decay", "precision", "milestones", "evaluation", "source_levels"):
+        assert getattr(long, name) == getattr(pilot, name)
+    spec = load_experiment("pilot_wind_l_long")
+    assert (spec.model, spec.train, spec.evaluation, spec.seed) == ("wind_l", "pilot_long", "pilot", DEFAULT_SEED)
+
+
 def test_pilot_notebook_runs_wind_and_spheridiff_on_separate_queues():
     source = notebook_source(PILOT_NOTEBOOK)
     for name in ("pilot_wind_s", "pilot_wind_m", "pilot_wind_l", "pilot_spheridiff_b4"):
@@ -171,7 +212,17 @@ def test_command_line_scripts_start():
         "OPENBLAS_NUM_THREADS": "1",
         "OMP_NUM_THREADS": "1",
     }
-    for script in ("train", "evaluate", "smoke", "plot_runs", "compare_runs", "package_runs", "prepare_data"):
+    for script in (
+        "train",
+        "evaluate",
+        "smoke",
+        "plot_runs",
+        "compare_runs",
+        "package_runs",
+        "final_evaluation",
+        "final_summary",
+        "prepare_data",
+    ):
         result = subprocess.run(
             [sys.executable, str(PROJECT_ROOT / "scripts" / f"{script}.py"), "--help"],
             capture_output=True,

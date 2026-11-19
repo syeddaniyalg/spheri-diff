@@ -29,14 +29,32 @@ def ddim_step(denoiser, process, state, auxiliary, levels, context, mask):
     return next_alpha * estimate + next_sigma * direction
 
 
+def native_steps(steps, start_level):
+    return max(2, round(steps * start_level))
+
+
+def noised_guess(process, guess, level, generator):
+    levels = torch.full(guess.shape[:2], level, device=guess.device)
+    return process.corrupt(guess, levels, generator)[0]
+
+
 @torch.no_grad()
 def ddim_sample(
-    denoiser, process, auxiliary, channels, steps, context=None, mask=None, generator=None
+    denoiser,
+    process,
+    auxiliary,
+    channels,
+    steps,
+    context=None,
+    mask=None,
+    generator=None,
+    start_level=1.0,
+    initial=None,
 ):
     batch, frames, _, height, width = auxiliary.shape
     shape = (batch, frames, channels, height, width)
-    state = initial_state(process, shape, auxiliary.device, generator)
-    grid = torch.linspace(1.0, 0.0, steps + 1).tolist()
+    state = initial_state(process, shape, auxiliary.device, generator) if initial is None else initial
+    grid = torch.linspace(start_level, 0.0, steps + 1).tolist()
     for levels in zip(grid[:-1], grid[1:]):
         state = ddim_step(denoiser, process, state, auxiliary, levels, context, mask)
     return state if mask is None else torch.where(mask, context, state)

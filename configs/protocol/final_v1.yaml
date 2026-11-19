@@ -1,0 +1,45 @@
+name: final_v1
+split: test
+windows: 64
+members: 5
+ddim_steps: 15
+batch_size: 4
+forecast_frames: 21
+seed: 42
+precision: fp32
+fields:
+  - 500_geopotential
+  - 850_temperature
+  - 2m_temperature
+  - 10m_u_component_of_wind
+  - mean_sea_level_pressure
+  - 700_specific_humidity
+
+guidance:
+  noise_variance: 0.0015
+  iterations: 2
+  solver: gmres
+
+native_init:
+  start_level: 0.5
+
+methods: [mmps, native, native_init]
+
+tasks:
+  spatial_reconstruction:
+    operator: sensor_mask
+    fraction: 0.05
+  spatial_downsampling:
+    operator: spatial_average
+    factor: 4
+  temporal_reconstruction:
+    operator: frame_mask
+    observed: [0, 4]
+  temporal_downsampling:
+    operator: temporal_average
+  spatiotemporal_downsampling:
+    operator: spatiotemporal_average
+    factor: 4
+  spatiotemporal_reconstruction:
+    operator: space_time_mask
+    fraction: 0.05

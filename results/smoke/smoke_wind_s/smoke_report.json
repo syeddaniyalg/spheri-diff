@@ -1,0 +1,47 @@
+{
+  "experiment": "smoke_wind_s",
+  "device": "cuda",
+  "static": {
+    "passed": true,
+    "parameters": 3005369,
+    "output_shape": [
+      2,
+      5,
+      25,
+      32,
+      64
+    ]
+  },
+  "overfit": {
+    "passed": true,
+    "loss_ratio": 0.04650899690617738,
+    "final_nrmse": 0.35423925518989563,
+    "mean_baseline_nrmse": 0.9813234210014343
+  },
+  "short": {
+    "passed": true,
+    "loss_ratio": 0.1256758414593848,
+    "skipped_fraction": 0.0,
+    "final_nrmse": 0.6186932325363159,
+    "mean_baseline_nrmse": 0.9873010516166687,
+    "persistence_nrmse": 0.395957887172699
+  },
+  "resume": {
+    "passed": true,
+    "gap_ratio": 1.2243371649844903e-08
+  },
+  "tasks": {
+    "passed": true,
+    "values": 68
+  },
+  "timing": {
+    "passed": true,
+    "samples_per_second": 148.83449984369148,
+    "pilot_steps": 45000,
+    "training_hours": 1.3437744623057382,
+    "evaluation_hours": 0.026588061855468404,
+    "total_hours": 1.3703625241612065,
+    "total_hours_with_margin": 1.644435028993448
+  },
+  "passed": true
+}

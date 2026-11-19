@@ -20,6 +20,7 @@ class FullEvaluationSettings:
     cg_iterations: int
     fields: tuple
     seed: int = DEFAULT_SEED
+    solver: str = "gmres"
 
     def __post_init__(self):
         if self.members < 2:

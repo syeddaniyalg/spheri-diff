@@ -1,0 +1,7 @@
+name: pilot_wind_l_long
+data: era5_5p6deg
+model: wind_l
+train: pilot_long
+evaluation: pilot
+seed: 42
+pilot_train: pilot_long
