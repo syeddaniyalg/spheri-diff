@@ -6,7 +6,7 @@ import pytest
 
 from spheridiff.kaggle.finalise import finalise
 from spheridiff.kaggle.jobs import Job, assign_queues, smoke_job, train_job
-from spheridiff.kaggle.monitor import LogTail, format_report
+from spheridiff.kaggle.monitor import LogStream, format_report
 from spheridiff.kaggle.runner import ParallelRunner, RunContext, job_command
 
 DUMMY = """import os
@@ -70,7 +70,7 @@ def test_budgeted_jobs_receive_the_remaining_time(context):
 def test_queues_run_in_parallel_with_their_own_gpu(context):
     queues = [[dummy_job("first", 2.0), dummy_job("third", 0.2)], [dummy_job("second", 2.0)]]
     started = time.time()
-    runner = ParallelRunner(queues, context, report_every=0.5, poll_every=0.1)
+    runner = ParallelRunner(queues, context, poll_every=0.1)
     outcomes = runner.run()
     elapsed = time.time() - started
     assert elapsed < 4.0
@@ -82,6 +82,9 @@ def test_queues_run_in_parallel_with_their_own_gpu(context):
     assert "gpu 1" in (context.log_dir / "second.log").read_text(encoding="utf-8")
     combined = (context.log_dir / "parallel.log").read_text(encoding="utf-8")
     assert "[gpu 0] [first]" in combined and "[gpu 1] [second]" in combined
+    for name, gpu in (("first", 0), ("second", 1), ("third", 0)):
+        for fragment in (f"gpu {gpu}", "args", "bar ▍ █ 0%"):
+            assert f"[{name}] {fragment}" in combined
 
 
 def test_a_failing_job_does_not_stop_the_others(context):
@@ -119,9 +122,18 @@ def test_the_archive_is_written_after_a_failure(context, tmp_path):
     assert json.loads((context.runs_root / "status.json").read_text())[0]["returncode"] == 1
 
 
-def test_log_tail_reads_the_latest_progress_line(tmp_path):
+def test_log_stream_returns_every_new_line_once(tmp_path):
     path = tmp_path / "job.log"
-    path.write_bytes(b"start\nstep 1\rstep 2\rstep 3\r")
-    assert LogTail(path).last_line() == "step 3"
-    assert LogTail(tmp_path / "missing.log").last_line() == ""
+    stream = LogStream(path)
+    assert stream.read() == []
+    path.write_bytes(b"start\nstep 1\rstep 2\rste")
+    assert stream.read() == ["start", "step 1", "step 2"]
+    with open(path, "ab") as handle:
+        handle.write(b"p 3\rstep 4\n")
+    assert stream.read() == ["step 3", "step 4"]
+    with open(path, "ab") as handle:
+        handle.write(b"last without ending")
+    assert stream.read() == []
+    assert stream.flush() == ["last without ending"]
+    assert stream.read() == []
     assert "[gpu 1]" in format_report("job", 1, 120.0, "text")

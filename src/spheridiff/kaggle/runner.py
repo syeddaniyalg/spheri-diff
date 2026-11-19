@@ -7,7 +7,7 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from .monitor import LogTail, format_report
+from .monitor import LogStream, format_report
 
 GRACE_SECONDS = 600
 MINIMUM_SECONDS = 300
@@ -38,7 +38,7 @@ def job_environment(context, gpu):
         **os.environ,
         "PYTHONPATH": str(context.code_root / "src"),
         "CUDA_VISIBLE_DEVICES": str(gpu),
-        "TQDM_MININTERVAL": "20",
+        "TQDM_MININTERVAL": "1",
         "PYTHONUNBUFFERED": "1",
     }
 
@@ -48,6 +48,7 @@ class QueueWorker:
         self.gpu, self.jobs, self.context = gpu, list(jobs), context
         self.process, self.name, self.log, self.started = None, None, None, 0.0
         self.outcomes = []
+        self.logs = {}
 
     @property
     def done(self):
@@ -76,7 +77,9 @@ class QueueWorker:
         if self.context.deadline - now < self.context.minimum_seconds + self.context.grace_seconds:
             self.outcomes.append({"job": job.name, "gpu": self.gpu, "returncode": None, "seconds": 0.0})
             return
-        self.log = open(self.context.log_dir / f"{job.name}.log", "w")
+        path = self.context.log_dir / f"{job.name}.log"
+        self.logs[job.name] = path
+        self.log = open(path, "w")
         self.process = subprocess.Popen(
             job_command(job, self.context, now),
             env=job_environment(self.context, self.gpu),
@@ -100,26 +103,34 @@ class QueueWorker:
 
 
 class ParallelRunner:
-    def __init__(self, queues, context, report_every=60, poll_every=5, refresh=None, refresh_every=1800):
+    def __init__(self, queues, context, poll_every=1.0, refresh=None, refresh_every=1800):
         context.log_dir.mkdir(parents=True, exist_ok=True)
         self.context = context
         self.workers = [QueueWorker(gpu, jobs, context) for gpu, jobs in enumerate(queues)]
-        self.report_every, self.poll_every = report_every, poll_every
+        self.poll_every = poll_every
         self.refresh, self.refresh_every = refresh, refresh_every
         self.started = time.time()
         self.combined = context.log_dir / "parallel.log"
+        self.streams = {}
 
-    def report(self):
-        lines = []
-        for worker in self.workers:
-            if worker.name is not None:
-                line = LogTail(self.context.log_dir / f"{worker.name}.log").last_line()
-                lines.append(format_report(worker.name, worker.gpu, time.time() - self.started, line))
+    def emit(self, name, gpu, lines):
         if not lines:
             return
-        tqdm.write("\n".join(lines))
+        elapsed = time.time() - self.started
+        text = "\n".join(format_report(name, gpu, elapsed, line) for line in lines)
+        print(text, flush=True)
         with open(self.combined, "a", encoding="utf-8") as handle:
-            handle.write("\n".join(lines) + "\n")
+            handle.write(text + "\n")
+
+    def stream_logs(self, final=False):
+        finished = {outcome["job"] for outcome in self.outcomes()}
+        for worker in self.workers:
+            for name, path in worker.logs.items():
+                stream = self.streams.setdefault(name, LogStream(path))
+                lines = stream.read()
+                if final or name in finished:
+                    lines += stream.flush()
+                self.emit(name, worker.gpu, lines)
 
     def outcomes(self):
         return [outcome for worker in self.workers for outcome in worker.outcomes]
@@ -130,15 +141,13 @@ class ParallelRunner:
             worker.stop()
 
     def run(self):
-        next_report, next_refresh = 0.0, time.time() + self.refresh_every
+        next_refresh = time.time() + self.refresh_every
         try:
             while not all(worker.done for worker in self.workers):
                 for worker in self.workers:
                     worker.advance()
+                self.stream_logs()
                 now = time.time()
-                if now >= next_report:
-                    self.report()
-                    next_report = now + self.report_every
                 if self.refresh is not None and now >= next_refresh:
                     self.refresh()
                     next_refresh = now + self.refresh_every
@@ -149,4 +158,5 @@ class ParallelRunner:
         finally:
             for worker in self.workers:
                 worker.stop()
+            self.stream_logs(final=True)
         return self.outcomes()
