@@ -22,9 +22,12 @@ SpherIDiff is implemented in `src/spheridiff/models/spheridiff/`. A block applie
 
 | Name | Widths | Blocks | Parameters |
 |---|---|---|---|
+| `spheridiff_xs` | 64, 128, 64 | 2 | 0.27M |
+| `spheridiff_s` | 32, 64, 64, 64, 32 | 4 | 0.35M |
+| `spheridiff_m` | 64, 128, 128, 128, 64 | 4 | 0.60M |
 | `spheridiff_b4` | 128, 256, 256, 256, 128 | 4 | 1.60M |
 
-For the 32 x 64 grid, L = 16, so K = 256 and each spectral weight has 65,536 parameters. Pretraining uses the whole sphere, so the Slepian projection is the identity and is not applied.
+The smaller variants (`xs`, `s`, `m`) keep the shape of `spheridiff_b4` (widths in the ratio 1, 2, 2, 2, 1, or 1, 2, 1 for two blocks) and every width is a power of two, so that the scaling series changes only the size. For the 32 x 64 grid, L = 16, so K = 256 and each spectral weight has 65,536 parameters. Pretraining uses the whole sphere, so the Slepian projection is the identity and is not applied.
 
 The proposal leaves some details open. The implementation uses these choices:
 

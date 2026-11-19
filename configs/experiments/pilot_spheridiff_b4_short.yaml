@@ -1,0 +1,6 @@
+name: pilot_spheridiff_b4_short
+data: era5_5p6deg
+model: spheridiff_b4
+train: pilot_short
+evaluation: pilot
+seed: 42

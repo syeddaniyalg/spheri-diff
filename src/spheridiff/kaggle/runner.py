@@ -20,7 +20,7 @@ class RunContext:
     runs_root: Path
     log_dir: Path
     cache_root: Path
-    deadline: float
+    deadline: float | None = None
     grace_seconds: float = GRACE_SECONDS
     minimum_seconds: float = MINIMUM_SECONDS
 
@@ -28,7 +28,7 @@ class RunContext:
 def job_command(job, context, now):
     command = [sys.executable, str(context.code_root / "scripts" / job.script), *job.arguments]
     command += ["--runs-root", str(context.runs_root), "--cache-root", str(context.cache_root)]
-    if job.budgeted:
+    if job.budgeted and context.deadline is not None:
         command += ["--max-seconds", str(int(context.deadline - now - context.grace_seconds))]
     return command
 
@@ -74,7 +74,7 @@ class QueueWorker:
     def start_next(self):
         job = self.jobs.pop(0)
         now = time.time()
-        if self.context.deadline - now < self.context.minimum_seconds + self.context.grace_seconds:
+        if self.context.deadline is not None and self.context.deadline - now < self.context.minimum_seconds + self.context.grace_seconds:
             self.outcomes.append({"job": job.name, "gpu": self.gpu, "returncode": None, "seconds": 0.0})
             return
         path = self.context.log_dir / f"{job.name}.log"
@@ -151,7 +151,7 @@ class ParallelRunner:
                 if self.refresh is not None and now >= next_refresh:
                     self.refresh()
                     next_refresh = now + self.refresh_every
-                if now >= self.context.deadline:
+                if self.context.deadline is not None and now >= self.context.deadline:
                     self.stop_all()
                     break
                 time.sleep(self.poll_every)
