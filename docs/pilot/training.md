@@ -62,8 +62,8 @@ The main pilot compares the models at equal steps and samples, which favours the
 
 - **Setting.** It differs from the pilot only in length: 135,000 steps instead of 45,000, with evaluations and checkpoints every 6,750 steps, and its own full cosine schedule. The data, batch size, learning rate, EMA, evaluation, seed and milestone fractions are the same, and a test checks this.
 - **Time match.** The step count is an estimate: about 4.6 hours at an assumed 130 samples per second for `wind_l` (not measured on the T4), against about 5.3 hours projected for SpherIDiff. It should be adjusted when the pilot timing is known.
-- **Separate storage.** It is run by its own notebook, `notebooks/kaggle_pilot_timematched.ipynb`, in its own Kaggle session, with its own runs folder and its own archive, `pilot_timematched_results.zip`. Its results are not mixed with the files of the main pilot.
-- **Comparison.** When the output of the main pilot is attached as a Kaggle input, the notebook compares the run with `pilot_spheridiff_b4` and `pilot_wind_l`. Here the paired difference uses the last evaluation of each run, because the step counts differ, and the figures show the references together with the run.
+- **Placement.** It is part of the pilot notebook, `notebooks/kaggle_pilot.ipynb`. It runs on the WIND GPU after the other three WIND runs have ended, and it is stopped with a checkpoint at the training deadline if it has not finished. Its results are in the same runs folder and archive as the other runs.
+- **Comparison.** It is compared with SpherIDiff like the other WIND runs.
 - **Smoke test.** It is not part of the smoke test.
 
 ## Running on Kaggle
