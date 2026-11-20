@@ -83,6 +83,16 @@ The variants `spheridiff_xs`, `spheridiff_s` and `spheridiff_m` (0.27M, 0.35M an
 - **Throughput.** Whether three processes on one GPU finish faster than one after another has not been measured. The processes share the GPU in turns.
 - **Comparison.** When the output of the main pilot is attached as a Kaggle input, the notebook compares every run with the WIND runs and the main SpherIDiff run. The paired difference uses the last evaluation of each run, because the step counts differ.
 
+## Cooldown test of the step budget
+
+Under the cosine schedule the late part of a learning curve flattens partly because the learning rate decays, so the curve alone does not show how many steps a run needed. The cooldown test measures this from the milestone checkpoints of the main pilot, without training the runs again.
+
+- **Branches.** From each milestone (11,250, 22,500 and 33,750 steps), training continues for 15% of the milestone step. The learning rate starts at its value on the cosine schedule at the milestone and falls to the minimum learning rate with the (1 - sqrt) shape (`cooldown_rate_at` in `src/spheridiff/training/schedule.py`). Each branch is a run folder of its own, for example `pilot_spheridiff_b4_cooldown_022500`, and is evaluated once, at its last step, with the evaluation used during the pilot.
+- **Same stream.** A branch restores the model, optimizer, scaler and EMA of the milestone, keeps the seed 42 and continues the batch stream and the training noise from the milestone step. It differs from the full run only in the learning rate schedule, and a test checks that the first branch step has the same loss as the full run at that step.
+- **Reading.** Each branch is compared with the full 45,000-step run by the paired difference of the normalised RMSE over the 32 validation windows, with a 95% bootstrap interval. A branch matches the full run when the upper end of the interval is at most 0.002. The smallest matching branch end is the budget that the run needed. The table is written to `cooldown_summary.txt` and `.json`, and the figure to `cooldown_curves.png`.
+- **Script.** `scripts/cooldown.py` runs the branches of one experiment in one process, so the data is loaded once. A branch whose summary reaches its last step is skipped, and `--keep-only-weights` deletes the large checkpoints of a finished branch.
+- **Notebook.** The test is run by `notebooks/colab_pilot_cooldown.ipynb` on Google Colab with one T4 GPU. It reads one archive from Google Drive with the ERA5 cache and, for each pilot run, the milestones, the configuration snapshot and the evaluation logs, and it writes its results archive back to Drive. At the speeds measured in the pilot, the twelve branches take about two and a half hours.
+
 ## Running on Kaggle
 
 The notebooks `notebooks/kaggle_pilot.ipynb` and `notebooks/kaggle_smoke.ipynb` run the jobs in the background, as a saved version that Kaggle executes from start to end. Both use the runner in `src/spheridiff/kaggle/`.

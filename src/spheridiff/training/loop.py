@@ -20,7 +20,7 @@ from .runlog import (
     truncate_records,
     write_summary,
 )
-from .schedule import learning_rate_at
+from .schedule import scheduled_rate
 
 SEED_STRIDE = 1_000_003
 
@@ -60,15 +60,17 @@ class Trainer:
             fused=fused,
         )
 
-    def run(self, resume=True):
-        self.prepare(resume)
+    def run(self, resume=True, start_from=None):
+        self.prepare(resume, start_from)
         self.write_snapshot()
         self.evaluate_at_start()
         self.loop()
         self.finish()
 
-    def prepare(self, resume):
+    def prepare(self, resume, start_from=None):
         state = load_state(self.paths.checkpoint, self.device) if resume else None
+        if state is None and start_from is not None:
+            state = load_state(start_from, self.device)
         logs = (self.paths.steps, self.paths.evaluations, self.paths.windows)
         if state is None:
             for path in logs:
@@ -121,14 +123,7 @@ class Trainer:
         return generator.manual_seed(self.seed * SEED_STRIDE + self.step)
 
     def apply_learning_rate(self):
-        settings = self.settings
-        value = learning_rate_at(
-            self.step,
-            settings.steps,
-            settings.learning_rate,
-            settings.min_learning_rate,
-            settings.warmup_steps,
-        )
+        value = scheduled_rate(self.settings, self.step)
         for group in self.optimizer.param_groups:
             group["lr"] = value
         return value

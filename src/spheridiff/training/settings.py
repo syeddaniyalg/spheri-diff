@@ -40,6 +40,8 @@ class TrainSettings:
     fixed_windows: int = 0
     max_seconds: float = 0.0
     milestones: tuple = ()
+    cooldown_start: int = 0
+    cooldown_peak: float = 0.0
 
     def __post_init__(self):
         if self.precision not in PRECISIONS:

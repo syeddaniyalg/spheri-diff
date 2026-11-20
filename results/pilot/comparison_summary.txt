@@ -1,0 +1,32 @@
+pilot_spheridiff_b4 against pilot_wind_s on nrmse/mean (lower is better)
+  target (reference final value): 0.2498
+  the run did not reach the target and stay there
+  at   5% of training: 0.4195 against 0.5544
+  at  10% of training: 0.3689 against 0.4100
+  at  25% of training: 0.3339 against 0.3081
+  at  50% of training: 0.3142 against 0.2637
+  at 100% of training: 0.3071 against 0.2498
+  mean over the curve: 0.3234 against 0.2884
+  paired difference at step 45000 against step 45000: +0.0622 (95% interval +0.0592 to +0.0653, 32 windows)
+
+pilot_spheridiff_b4 against pilot_wind_m on nrmse/mean (lower is better)
+  target (reference final value): 0.2324
+  the run did not reach the target and stay there
+  at   5% of training: 0.4195 against 0.4294
+  at  10% of training: 0.3689 against 0.3566
+  at  25% of training: 0.3339 against 0.2780
+  at  50% of training: 0.3142 against 0.2440
+  at 100% of training: 0.3071 against 0.2324
+  mean over the curve: 0.3234 against 0.2614
+  paired difference at step 45000 against step 45000: +0.0818 (95% interval +0.0789 to +0.0848, 32 windows)
+
+pilot_spheridiff_b4 against pilot_wind_l on nrmse/mean (lower is better)
+  target (reference final value): 0.2376
+  the run did not reach the target and stay there
+  at   5% of training: 0.4195 against 0.4203
+  at  10% of training: 0.3689 against 0.3435
+  at  25% of training: 0.3339 against 0.2754
+  at  50% of training: 0.3142 against 0.2462
+  at 100% of training: 0.3071 against 0.2376
+  mean over the curve: 0.3234 against 0.2620
+  paired difference at step 45000 against step 45000: +0.0771 (95% interval +0.0739 to +0.0805, 32 windows)

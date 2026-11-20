@@ -28,5 +28,20 @@ def final_job(experiment, protocol="final_v1"):
     return Job(f"final_{experiment}", "final_evaluation.py", arguments)
 
 
+def cooldown_job(experiment, milestones_root, starts, fraction):
+    arguments = (
+        "--experiment",
+        experiment,
+        "--milestones-root",
+        str(milestones_root),
+        "--starts",
+        *(str(step) for step in starts),
+        "--fraction",
+        str(fraction),
+        "--keep-only-weights",
+    )
+    return Job(f"cooldown_{experiment}", "cooldown.py", arguments)
+
+
 def smoke_job(experiment):
     return Job(experiment, "smoke.py", ("--experiment", experiment))

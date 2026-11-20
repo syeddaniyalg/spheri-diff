@@ -1,0 +1,50 @@
+[
+  {
+    "job": "pilot_wind_s",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 5245.90465092659
+  },
+  {
+    "job": "pilot_wind_m",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 6018.820107460022
+  },
+  {
+    "job": "pilot_wind_l",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 6202.808569192886
+  },
+  {
+    "job": "pilot_spheridiff_b4",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 23504.93835568428
+  },
+  {
+    "job": "final_pilot_wind_s",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 896.8047873973846
+  },
+  {
+    "job": "final_pilot_wind_m",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 1268.5882847309113
+  },
+  {
+    "job": "final_pilot_wind_l",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 1427.3384540081024
+  },
+  {
+    "job": "final_pilot_spheridiff_b4",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 4336.7859354019165
+  }
+]

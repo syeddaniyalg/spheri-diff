@@ -28,7 +28,8 @@ NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_smoke.ipynb"
 PILOT_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot.ipynb"
 TIMEMATCHED_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_timematched.ipynb"
 VARIANTS_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_variants.ipynb"
-NOTEBOOKS = [NOTEBOOK, PILOT_NOTEBOOK, TIMEMATCHED_NOTEBOOK, VARIANTS_NOTEBOOK]
+COOLDOWN_NOTEBOOK = PROJECT_ROOT / "notebooks" / "colab_pilot_cooldown.ipynb"
+NOTEBOOKS = [NOTEBOOK, PILOT_NOTEBOOK, TIMEMATCHED_NOTEBOOK, VARIANTS_NOTEBOOK, COOLDOWN_NOTEBOOK]
 
 
 def python_files():
@@ -110,6 +111,18 @@ def test_smoke_notebook_refers_to_existing_files_and_experiments():
         assert (CONFIG_ROOT / "experiments" / f"{name}.yaml").exists()
     for stage in STAGES:
         assert f'"{stage}"' in source
+
+
+def test_cooldown_notebook_refers_to_existing_runs_and_scripts():
+    source = notebook_source(COOLDOWN_NOTEBOOK)
+    assert (PROJECT_ROOT / "scripts" / "cooldown.py").exists()
+    assert "cooldown_job(" in source and "write_cooldown_summary(" in source
+    assert "google.colab" in source and "/kaggle" not in source
+    for name in ("pilot_spheridiff_b4", "pilot_wind_s", "pilot_wind_m", "pilot_wind_l"):
+        assert f'"{name}"' in source
+        settings = load_train_settings(load_experiment(name).train)
+        for start in (11250, 22500, 33750):
+            assert start in settings.milestone_steps
 
 
 def test_pilot_notebooks_run_the_final_evaluation_after_the_training():
@@ -227,6 +240,7 @@ def test_command_line_scripts_start():
     }
     for script in (
         "train",
+        "cooldown",
         "evaluate",
         "smoke",
         "plot_runs",
