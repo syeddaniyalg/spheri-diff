@@ -5,7 +5,7 @@ from spheridiff.models.layers.init import zeroed
 from spheridiff.models.layers.norm import RMSNorm
 from spheridiff.models.layers.rope import RotaryEmbedding, rotate_half
 
-from .spectral import SpectralMixing
+from .spectral import build_mixing
 
 
 class ChannelMlp(nn.Module):
@@ -44,10 +44,10 @@ class TemporalAttention(nn.Module):
 
 
 class SpherIDiffBlock(nn.Module):
-    def __init__(self, in_width, out_width, heads, frames, transform):
+    def __init__(self, in_width, out_width, heads, frames, transform, rank=None):
         super().__init__()
         self.spectral_norm = RMSNorm(in_width)
-        self.spectral = SpectralMixing(transform)
+        self.spectral = build_mixing(transform, rank)
         self.mlp_norm = RMSNorm(in_width)
         self.mlp = ChannelMlp(in_width, out_width)
         self.shortcut = (

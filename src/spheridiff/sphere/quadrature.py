@@ -11,7 +11,19 @@ def clenshaw_curtis_weights(points):
     return edge / intervals * (1.0 - scale @ cosines)
 
 
+def gauss_legendre_weights(latitudes):
+    sines = np.sin(np.radians(latitudes))
+    _, weights = np.polynomial.legendre.leggauss(len(latitudes))
+    ranks = np.argsort(np.argsort(sines))
+    return weights[ranks]
+
+
+def latitude_weights(grid):
+    if grid.quadrature == "gauss_legendre":
+        return gauss_legendre_weights(grid.latitudes)
+    return clenshaw_curtis_weights(grid.height)
+
+
 def sphere_quadrature(grid):
-    latitude_weights = clenshaw_curtis_weights(grid.height)
     longitude_weight = 2.0 * np.pi / grid.width
-    return np.repeat(latitude_weights, grid.width) * longitude_weight
+    return np.repeat(latitude_weights(grid), grid.width) * longitude_weight

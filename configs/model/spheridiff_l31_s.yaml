@@ -1,0 +1,16 @@
+name: spheridiff
+
+sphere:
+  bandlimit: 31
+  analysis: least_squares
+
+diffusion:
+  noise: spectral
+  projection: band_limit
+
+architecture:
+  widths: [32, 64, 64, 64, 32]
+  heads: 4
+  rank: 32
+  internal_grid: gauss
+  transform: dense

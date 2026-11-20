@@ -83,6 +83,15 @@ The variants `spheridiff_xs`, `spheridiff_s` and `spheridiff_m` (0.27M, 0.35M an
 - **Throughput.** Whether three processes on one GPU finish faster than one after another has not been measured. The processes share the GPU in turns.
 - **Comparison.** When the output of the main pilot is attached as a Kaggle input, the notebook compares every run with the WIND runs and the main SpherIDiff run. The paired difference uses the last evaluation of each run, because the step counts differ.
 
+## SpherIDiff at band limit 31
+
+The four SpherIDiff sizes are trained again with band limit L = 31 and the amendments described in [models.md](models.md#spheridiff-at-band-limit-31). They are run by `notebooks/kaggle_pilot_l31.ipynb` in a separate Kaggle session, with its own runs folder and its own archive, `pilot_l31_results.zip`.
+
+- **Budget.** Every run is trained for 25,000 steps (`configs/train/pilot_25k.yaml`), the fixed comparison budget. Evaluation and checkpoints come every 1,250 steps, so the curve has 20 points as in the main pilot. All other settings, including the seed 42, are those of the pilot.
+- **Placement.** Each GPU trains one run at a time. The first GPU trains `xs` and then `b4`, and the second GPU trains `s` and then `m`, which pairs the smallest run with the largest. The two queues run in parallel, and the smaller run of each pair comes first. With one GPU, both queues share it.
+- **Final evaluation.** When all training jobs have ended, every run is evaluated under the fixed protocol `final_v1` on the same two queues.
+- **Comparison.** When the output of the main pilot is attached as a Kaggle input, every run is compared with the WIND runs and with the main SpherIDiff run at L = 16. These references were trained for 45,000 steps, so the paired difference of the final errors favours them. Their errors at 25,000 steps appear among the errors at fixed fractions of training and in the evaluation curves.
+
 ## Cooldown test of the step budget
 
 Under the cosine schedule the late part of a learning curve flattens partly because the learning rate decays, so the curve alone does not show how many steps a run needed. The cooldown test measures this from the milestone checkpoints of the main pilot, without training the runs again.

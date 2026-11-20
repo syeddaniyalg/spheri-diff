@@ -5,8 +5,8 @@ The pilot experiment is a small first experiment with SpherIDiff, run before a f
 ## Index
 
 - **Dataset**: the data used by the pilot, summarised in [Dataset](#dataset) below. The source, channels, cache layout and script options are in [docs/data/era5_5p6deg.md](../data/era5_5p6deg.md).
-- **Models**: the three baseline sizes and the four SpherIDiff sizes, with their parameter counts and the design choices that were made. See [models.md](models.md).
-- **Training and evaluation**: the shared training settings, the saved files, the parallel background runs on Kaggle, the separate time-matched WIND-L run, the smaller SpherIDiff variants and the time-matched SpherIDiff run, the cooldown test of the step budget, the evaluation during training, and the full evaluation after training. See [training.md](training.md).
+- **Models**: the three baseline sizes and the four SpherIDiff sizes, with their parameter counts and the design choices that were made, and the amended SpherIDiff at band limit 31. See [models.md](models.md).
+- **Training and evaluation**: the shared training settings, the saved files, the parallel background runs on Kaggle, the separate time-matched WIND-L run, the smaller SpherIDiff variants and the time-matched SpherIDiff run, the SpherIDiff runs at band limit 31, the cooldown test of the step budget, the evaluation during training, and the full evaluation after training. See [training.md](training.md).
 - **Final evaluation**: the fixed protocol on the held-out test year, covering forecasting and six reconstruction tasks, each solved with guidance and with two forms of native denoising. See [final_evaluation.md](final_evaluation.md).
 - **Smoke test**: the short checks of both models before the pilot run, and the Kaggle notebook that runs them. See [smoke.md](smoke.md).
 - **Comparison with WIND**: the baseline comparison, summarised in [Comparison with WIND](#comparison-with-wind) below.

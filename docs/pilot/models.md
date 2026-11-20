@@ -37,6 +37,31 @@ The proposal leaves some details open. The implementation uses these choices:
 - Temporal attention has 4 heads and a rotary embedding over the frame index.
 - The spectral transform runs in 32-bit precision.
 
+## SpherIDiff at band limit 31
+
+With L = 16, the band-limited target leaves part of every field out of reach. On one training year, the normalised RMSE of the data against its own band-limited version is about 0.27 at L = 16 and about 0.10 at L = 31. Three amendments make L = 31 possible within a small parameter budget. Each is a configuration option, so the configurations above keep the original model.
+
+| Option | Where | Values |
+|---|---|---|
+| Band limit and analysis | `sphere: bandlimit, analysis` | `31`, `least_squares` (default: grid limit, `quadrature`) |
+| Spectral weight | `architecture: rank` | `32` (default: none, dense weight) |
+| Grid of the blocks | `architecture: internal_grid` | `gauss` (default: `data`) |
+| Transform in the blocks | `architecture: transform` | `dense` (alternative: `separable`) |
+
+- **Least-squares analysis.** On the equiangular grid with poles, quadrature supports only L = 16. At L = 31 (K = 961), the analysis is fitted by weighted least squares, with the Clenshaw-Curtis weights as row weights. The system has full rank, with a condition number of about 2.4, and synthesis followed by analysis gives the identity. The diffusion process uses the same transform, so the input is band-limited once at L = 31 and the spectral noise has K = 961 coefficients.
+- **Diagonal plus low-rank weight.** Each block uses W = D + P Q^T, with D diagonal and P, Q of size K x r, which gives K + 2Kr parameters per block in place of K^2. D and Q start at zero, so the stage starts as the zero map, and P starts with small random values so that both factors receive gradients. The weight remains a full-rank K x K matrix. Its dense form (`dense_weight`) is what regional fine-tuning receives, so the Slepian projection U_M^T W U_M and the low-rank update W_0 + A B apply unchanged. A test checks that the structured weight and its dense form give the same output.
+- **Internal Gauss grid.** The blocks run on a 32 x 64 Legendre-Gauss grid, where quadrature is exact up to L = 32. The merged input (noisy and auxiliary channels) is moved onto this grid once before the uplift, and the output back onto the data grid after the downlift. Both moves are exact for fields band-limited at L = 31. The noisy input is band-limited by construction, while the auxiliary channels are band-limited by the move.
+- **Transform in the blocks.** The configurations use dense matrices on the Gauss grid. A separable form is also implemented: a Fourier transform along longitude followed by a Legendre contraction for each order, as in the spherical harmonic transform of torch-harmonics. A test checks that it gives the same coefficients and fields as the dense matrices. In a local test on the RTX 4050 (b4, batch size 8), it took 0.41 s per step against 0.34 s for the dense form and used more memory, because at this grid size the cost is set by memory traffic rather than arithmetic. It is therefore not used in the configurations.
+
+| Name | Widths | Blocks | Parameters |
+|---|---|---|---|
+| `spheridiff_l31_xs` | 64, 128, 64 | 2 | 264,987 |
+| `spheridiff_l31_s` | 32, 64, 64, 64, 32 | 4 | 335,901 |
+| `spheridiff_l31_m` | 64, 128, 128, 128, 64 | 4 | 587,805 |
+| `spheridiff_l31_b4` | 128, 256, 256, 256, 128 | 4 | 1,589,277 |
+
+With a dense weight at L = 31, the same sizes would have about 1.99M, 3.78M, 4.03M and 5.03M parameters. The arithmetic of the spectral stage grows with K whatever the form of the weight, so a step at L = 31 is expected to take longer than at L = 16. The speed on the T4 has not been measured.
+
 ## Speed notes
 
 A profile on the pilot sizes showed that SpherIDiff was limited by memory traffic of element-wise operations on its full-resolution tensors, not by arithmetic. Two changes that keep the mathematics the same were applied: the RMS normalisation uses the fused `torch.nn.functional.rms_norm` when it exists (with the original formula as a fallback), and the five-frame temporal attention is written as two small `einsum` products with a rotary embedding on the frame axis. In a local test they gave about 1.95 times the training speed with the same outputs (relative difference 8e-7 in fp32, and no added error in fp16 beyond the fp16 error of the original). The spectral stage still runs in fp32. Running it in fp16 would be faster still, with a small extra error, and was not adopted.

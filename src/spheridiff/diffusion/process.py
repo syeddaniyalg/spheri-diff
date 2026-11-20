@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import torch
 
-from spheridiff.sphere.transform import SphericalTransform
+from spheridiff.sphere.transform import build_transform
 
 from .noise import GaussianNoise, SpectralNoise
 from .schedule import RectifiedSchedule
@@ -47,9 +47,9 @@ class DiffusionProcess:
         return alpha * target + sigma * noise, target
 
 
-def build_process(noise, projection, grid):
+def build_process(noise, projection, grid, sphere=None):
     needs_transform = noise == "spectral" or projection == "band_limit"
-    transform = SphericalTransform(grid) if needs_transform else None
+    transform = build_transform(grid, sphere) if needs_transform else None
     noise_source = SpectralNoise(transform) if noise == "spectral" else GaussianNoise()
     projector = IdentityProjection() if projection == "identity" else BandLimitProjection(transform)
     return DiffusionProcess(RectifiedSchedule(), noise_source, projector)

@@ -1,0 +1,6 @@
+name: pilot_spheridiff_l31_xs
+data: era5_5p6deg
+model: spheridiff_l31_xs
+train: pilot_25k
+evaluation: pilot
+seed: 42

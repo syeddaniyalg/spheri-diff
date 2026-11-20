@@ -29,7 +29,8 @@ PILOT_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot.ipynb"
 TIMEMATCHED_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_timematched.ipynb"
 VARIANTS_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_variants.ipynb"
 COOLDOWN_NOTEBOOK = PROJECT_ROOT / "notebooks" / "colab_pilot_cooldown.ipynb"
-NOTEBOOKS = [NOTEBOOK, PILOT_NOTEBOOK, TIMEMATCHED_NOTEBOOK, VARIANTS_NOTEBOOK, COOLDOWN_NOTEBOOK]
+L31_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_l31.ipynb"
+NOTEBOOKS = [NOTEBOOK, PILOT_NOTEBOOK, TIMEMATCHED_NOTEBOOK, VARIANTS_NOTEBOOK, COOLDOWN_NOTEBOOK, L31_NOTEBOOK]
 
 
 def python_files():
@@ -160,6 +161,22 @@ def test_variants_notebook_shares_one_gpu_between_the_small_variants():
     assert "(0, [train_job(name)]) for name in VARIANT_EXPERIMENTS" in source
     assert "(1, [train_job(TIME_MATCHED_EXPERIMENT)])" in source
     assert "pilot_variants_results.zip" in source and "at_final=True" in source
+    assert "DEADLINE" not in source and "smoke" not in source
+
+
+def test_band_limit_31_notebook_trains_one_run_per_gpu_at_a_time():
+    source = notebook_source(L31_NOTEBOOK)
+    for size in ("xs", "s", "m", "b4"):
+        name = f"pilot_spheridiff_l31_{size}"
+        assert f'"{name}"' in source
+        assert (CONFIG_ROOT / "experiments" / f"{name}.yaml").exists()
+    assert 'FIRST_GPU_EXPERIMENTS = ["pilot_spheridiff_l31_xs", "pilot_spheridiff_l31_b4"]' in source
+    assert 'SECOND_GPU_EXPERIMENTS = ["pilot_spheridiff_l31_s", "pilot_spheridiff_l31_m"]' in source
+    assert "(0, [train_job(name) for name in FIRST_GPU_EXPERIMENTS])" in source
+    assert "(1, [train_job(name) for name in SECOND_GPU_EXPERIMENTS])" in source
+    assert "(0, [final_job(name, FINAL_PROTOCOL) for name in FIRST_GPU_EXPERIMENTS])" in source
+    assert source.index("RUNNER.run()") < source.index("EVALUATOR.run()") < source.index("finally:")
+    assert "pilot_l31_results.zip" in source and "final_names=" in source
     assert "DEADLINE" not in source and "smoke" not in source
 
 
