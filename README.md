@@ -12,7 +12,7 @@ A small first experiment with SpherIDiff, run before a full experiment. It inclu
 
 - **Dataset**: the ERA5 data at 5.6 degrees used by the pilot, with its contents, splits, size and the commands to build it. See [docs/pilot/README.md](docs/pilot/README.md#dataset).
 - **Models**: the model sizes of the pilot and the design choices behind them. See [docs/pilot/models.md](docs/pilot/models.md).
-- **Training and evaluation**: the training settings, the saved files, the parallel background runs on Kaggle, the separate time-matched WIND-L run, the evaluation during training, and the full evaluation after training. See [docs/pilot/training.md](docs/pilot/training.md).
+- **Training and evaluation**: the training settings, the saved files, the parallel background runs on Kaggle, the separate time-matched WIND-L run, the smaller SpherIDiff variants and the time-matched SpherIDiff run, the evaluation during training, and the full evaluation after training. See [docs/pilot/training.md](docs/pilot/training.md).
 - **Final evaluation**: the fixed protocol on the held-out test year, for forecasting and six reconstruction tasks, each solved with guidance and without it. See [docs/pilot/final_evaluation.md](docs/pilot/final_evaluation.md).
 - **Smoke test**: the short checks that precede the pilot run, with a Kaggle notebook. See [docs/pilot/smoke.md](docs/pilot/smoke.md).
 

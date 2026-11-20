@@ -15,6 +15,10 @@ def assign_queues(groups, gpu_count):
     return [[job for group in groups for job in group]]
 
 
+def place_queues(placements, gpu_count):
+    return [(gpu % gpu_count, list(jobs)) for gpu, jobs in placements]
+
+
 def train_job(experiment):
     return Job(experiment, "train.py", ("--experiment", experiment), budgeted=True)
 

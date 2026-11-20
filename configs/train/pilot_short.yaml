@@ -1,4 +1,4 @@
-steps: 7500
+steps: 11625
 batch_size: 16
 learning_rate: 0.0003
 min_learning_rate: 0.000001

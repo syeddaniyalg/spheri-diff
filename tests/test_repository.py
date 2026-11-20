@@ -27,7 +27,8 @@ EM_DASH = chr(0x2014)
 NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_smoke.ipynb"
 PILOT_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot.ipynb"
 TIMEMATCHED_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_timematched.ipynb"
-NOTEBOOKS = [NOTEBOOK, PILOT_NOTEBOOK, TIMEMATCHED_NOTEBOOK]
+VARIANTS_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_variants.ipynb"
+NOTEBOOKS = [NOTEBOOK, PILOT_NOTEBOOK, TIMEMATCHED_NOTEBOOK, VARIANTS_NOTEBOOK]
 
 
 def python_files():
@@ -98,7 +99,7 @@ def test_notebooks_package_the_results_even_after_a_failure(path):
     assert run_cell.index("try:") < run_cell.index("RUNNER.run()") < run_cell.index("finally:")
     assert run_cell.index("finally:") < run_cell.index("finalise(")
     assert "CUDA_VISIBLE_DEVICES" not in source
-    assert "assign_queues" in source and "refresh_archive" in source
+    assert ("assign_queues" in source or "place_queues" in source) and "refresh_archive" in source
 
 
 def test_smoke_notebook_refers_to_existing_files_and_experiments():
@@ -135,6 +136,18 @@ def test_time_matched_notebook_is_separate_and_compares_the_final_errors():
     assert "reference_root=REFERENCE_ROOT" in source and "at_final=True" in source
     assert (CONFIG_ROOT / "experiments" / "pilot_wind_l_long.yaml").exists()
     assert "smoke" not in source
+
+
+def test_variants_notebook_shares_one_gpu_between_the_small_variants():
+    source = notebook_source(VARIANTS_NOTEBOOK)
+    for name in ("pilot_spheridiff_xs", "pilot_spheridiff_s", "pilot_spheridiff_m", "pilot_spheridiff_b4_short"):
+        assert name in source
+        assert (CONFIG_ROOT / "experiments" / f"{name}.yaml").exists()
+    assert "place_queues(TRAINING_PLACEMENT, GPUS)" in source
+    assert "(0, [train_job(name)]) for name in VARIANT_EXPERIMENTS" in source
+    assert "(1, [train_job(TIME_MATCHED_EXPERIMENT)])" in source
+    assert "pilot_variants_results.zip" in source and "at_final=True" in source
+    assert "DEADLINE" not in source and "smoke" not in source
 
 
 def test_time_matched_config_changes_only_the_length():

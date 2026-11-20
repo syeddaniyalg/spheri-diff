@@ -70,9 +70,18 @@ The main pilot compares the models at equal steps and samples, which favours the
 
 To test whether SpherIDiff keeps up with WIND-L when both get about the same wall-clock time, `spheridiff_b4` is also trained for fewer steps as `pilot_spheridiff_b4_short` (`configs/experiments/pilot_spheridiff_b4_short.yaml`, train config `pilot_short`).
 
-- **Setting.** It differs from the pilot only in length: 7,500 steps instead of 45,000, with evaluations and checkpoints every 375 steps, and its own full cosine schedule.
-- **Time match.** The step count is an estimate: about 1.7 hours for `wind_l` (not measured on the T4) at 0.81 seconds per step for SpherIDiff. It should be adjusted when the time of `wind_l` is known.
-- **Notebook.** It is not part of the pilot notebook.
+- **Setting.** It differs from the pilot only in length: 11,625 steps instead of 45,000, with evaluations and checkpoints every 375 steps, and its own full cosine schedule.
+- **Time match.** In the main pilot, `wind_l` trained for 6,057 s and SpherIDiff needed 0.511 s per step, which gives about 11,850 steps. The value is rounded down to a multiple of 375.
+- **Band limit.** It uses the band limit of the main pilot (L = 16), so that the comparison stays controlled.
+- **Notebook.** It is run by `notebooks/kaggle_pilot_variants.ipynb`, together with the smaller variants.
+
+## Smaller SpherIDiff variants
+
+The variants `spheridiff_xs`, `spheridiff_s` and `spheridiff_m` (0.27M, 0.35M and 0.60M parameters, see [models.md](models.md)) are trained for the same 45,000 steps as the main pilot. They are run by `notebooks/kaggle_pilot_variants.ipynb` in a separate Kaggle session, with its own runs folder and its own archive, `pilot_variants_results.zip`.
+
+- **Placement.** The three variants are three parallel processes on the first GPU, because their memory use is far below the memory of the card. The shorter run of `spheridiff_b4` uses the second GPU. The runner places each queue on a GPU that is named in the notebook, so several queues can share one GPU.
+- **Throughput.** Whether three processes on one GPU finish faster than one after another has not been measured. The processes share the GPU in turns.
+- **Comparison.** When the output of the main pilot is attached as a Kaggle input, the notebook compares every run with the WIND runs and the main SpherIDiff run. The paired difference uses the last evaluation of each run, because the step counts differ.
 
 ## Running on Kaggle
 

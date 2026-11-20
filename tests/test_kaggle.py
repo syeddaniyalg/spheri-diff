@@ -5,7 +5,7 @@ import zipfile
 import pytest
 
 from spheridiff.kaggle.finalise import finalise
-from spheridiff.kaggle.jobs import Job, assign_queues, smoke_job, train_job
+from spheridiff.kaggle.jobs import Job, assign_queues, place_queues, smoke_job, train_job
 from spheridiff.kaggle.monitor import LogStream, format_report
 from spheridiff.kaggle.runner import ParallelRunner, RunContext, job_command
 
@@ -85,6 +85,24 @@ def test_queues_run_in_parallel_with_their_own_gpu(context):
     for name, gpu in (("first", 0), ("second", 1), ("third", 0)):
         for fragment in (f"gpu {gpu}", "args", "bar ▍ █ 0%"):
             assert f"[{name}] {fragment}" in combined
+
+
+def test_place_queues_maps_lanes_to_gpus_and_wraps_around():
+    lanes = [(0, [dummy_job("a", 0)]), (0, [dummy_job("b", 0)]), (1, [dummy_job("c", 0)])]
+    assert [(gpu, [job.name for job in jobs]) for gpu, jobs in place_queues(lanes, 2)] == [
+        (0, ["a"]),
+        (0, ["b"]),
+        (1, ["c"]),
+    ]
+    assert [gpu for gpu, _ in place_queues(lanes, 1)] == [0, 0, 0]
+
+
+def test_several_queues_can_share_one_gpu_and_run_at_the_same_time(context):
+    lanes = [(0, [dummy_job("a", 2.0)]), (0, [dummy_job("b", 2.0)]), (1, [dummy_job("c", 2.0)])]
+    started = time.time()
+    outcomes = ParallelRunner(place_queues(lanes, 2), context, poll_every=0.1).run()
+    assert time.time() - started < 4.0
+    assert {outcome["job"]: outcome["gpu"] for outcome in outcomes} == {"a": 0, "b": 0, "c": 1}
 
 
 def test_a_failing_job_does_not_stop_the_others(context):

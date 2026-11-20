@@ -102,11 +102,15 @@ class QueueWorker:
         self.jobs = []
 
 
+def resolve_placements(queues):
+    return [item if isinstance(item, tuple) else (index, item) for index, item in enumerate(queues)]
+
+
 class ParallelRunner:
     def __init__(self, queues, context, poll_every=1.0, refresh=None, refresh_every=1800):
         context.log_dir.mkdir(parents=True, exist_ok=True)
         self.context = context
-        self.workers = [QueueWorker(gpu, jobs, context) for gpu, jobs in enumerate(queues)]
+        self.workers = [QueueWorker(gpu, jobs, context) for gpu, jobs in resolve_placements(queues)]
         self.poll_every = poll_every
         self.refresh, self.refresh_every = refresh, refresh_every
         self.started = time.time()
