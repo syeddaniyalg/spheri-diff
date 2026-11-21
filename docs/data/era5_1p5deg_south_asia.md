@@ -21,7 +21,7 @@ The store is public and needs no account. Every chunk holds a full global field 
 
 ## Local copy
 
-The local copy is stored in `artifacts/data/era5_1p5deg_south_asia/`, which is not tracked by git. It has the same layout as the global copy and is about 0.3 GB.
+The local copy is stored in `artifacts/data/era5_1p5deg_south_asia/`, which is not tracked by git. It has the same layout as the global copy and is about 0.19 GB for the five years.
 
 ```
 python scripts/prepare_data.py download --config era5_1p5deg_south_asia
