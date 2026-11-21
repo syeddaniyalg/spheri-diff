@@ -38,6 +38,7 @@ def build_final_evaluation(components, protocol, device, datasets):
 def describe_run(spec, components, paths, state):
     return {
         "experiment": spec.name,
+        "run": paths.root.name,
         "model": components.model_spec.name,
         "architecture": components.model_spec.architecture,
         "parameters": count_parameters(components.model),
@@ -47,10 +48,10 @@ def describe_run(spec, components, paths, state):
     }
 
 
-def run_final_evaluation(experiment, protocol, runs_root, cache_root, device, datasets=None):
+def run_final_evaluation(experiment, protocol, runs_root, cache_root, device, datasets=None, run_name=None):
     spec = load_experiment(experiment)
     components = build_components(spec, cache_root)
-    paths = RunPaths(runs_root, spec.name)
+    paths = RunPaths(runs_root, run_name or spec.name)
     state = torch.load(paths.weights, map_location=device, weights_only=False)
     components.model.load_state_dict(state["model"])
     components.model.to(device)

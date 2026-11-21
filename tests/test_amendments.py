@@ -131,6 +131,12 @@ def test_band_limit_31_configs_have_the_planned_sizes(size):
     assert count_parameters(model) == SIZES[size]
 
 
+def test_rank_128_ablation_has_the_planned_size():
+    spec = load_model_spec("spheridiff_l31_b4_r128")
+    model = build_model(spec.name, spec.architecture, ModelContext(25, 10, 5, make_grid(32, 64), spec.sphere))
+    assert count_parameters(model) == 2327325
+
+
 def test_earlier_configs_keep_the_dense_model():
     spec = load_model_spec("spheridiff_b4")
     model = build_model(spec.name, spec.architecture, ModelContext(25, 10, 5, make_grid(32, 64), spec.sphere))

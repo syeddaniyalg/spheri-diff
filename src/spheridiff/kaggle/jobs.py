@@ -23,9 +23,16 @@ def train_job(experiment):
     return Job(experiment, "train.py", ("--experiment", experiment), budgeted=True)
 
 
-def final_job(experiment, protocol="final_v1"):
+def final_job(experiment, protocol="final_v1", run_name=None):
     arguments = ("--experiments", experiment, "--protocol", protocol)
-    return Job(f"final_{experiment}", "final_evaluation.py", arguments)
+    if run_name is not None:
+        arguments += ("--run-names", run_name)
+    return Job(f"final_{run_name or experiment}", "final_evaluation.py", arguments)
+
+
+def finetune_job(experiment, pretrained_root):
+    arguments = ("--experiment", experiment, "--pretrained-root", str(pretrained_root))
+    return Job(experiment, "finetune.py", arguments, budgeted=True)
 
 
 def cooldown_job(experiment, milestones_root, starts, fraction):

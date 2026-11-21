@@ -12,6 +12,21 @@ def open_source(source):
     )
 
 
+def inside(values, bounds):
+    low, high = bounds
+    return np.flatnonzero((values >= low - 1e-6) & (values <= high + 1e-6))
+
+
+def crop_region(dataset, grid):
+    if not grid.regional:
+        return dataset
+    latitudes = inside(dataset["latitude"].values, grid.latitude_range)
+    longitudes = inside(dataset["longitude"].values, grid.longitude_range)
+    if (len(latitudes), len(longitudes)) != (grid.height, grid.width):
+        raise ValueError(f"the region holds {len(latitudes)} x {len(longitudes)} points, not {grid.height} x {grid.width}")
+    return dataset.isel(latitude=latitudes, longitude=longitudes)
+
+
 def close_source(dataset):
     dataset.close()
     try:

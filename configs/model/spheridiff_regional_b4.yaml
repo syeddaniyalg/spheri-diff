@@ -1,0 +1,13 @@
+name: spheridiff
+
+sphere:
+  kind: slepian
+  bandlimit: 61
+
+diffusion:
+  noise: spectral
+  projection: band_limit
+
+architecture:
+  widths: [128, 256, 256, 256, 128]
+  heads: 4

@@ -20,6 +20,12 @@ class SourceConfig:
 class GridConfig:
     height: int
     width: int
+    latitude_range: tuple = None
+    longitude_range: tuple = None
+
+    @property
+    def regional(self):
+        return self.latitude_range is not None
 
 
 @dataclass(frozen=True)
@@ -66,12 +72,17 @@ def resolve_cache_root(value):
     return path if path.is_absolute() else PROJECT_ROOT / path
 
 
+def grid_config(raw):
+    converted = {key: tuple(value) if isinstance(value, list) else value for key, value in raw.items()}
+    return GridConfig(**converted)
+
+
 def load_data_config(path, cache_root=None):
     raw = read_yaml(path, "data")
     channels = {key: tuple(value) for key, value in raw["channels"].items()}
     return DataConfig(
         source=SourceConfig(**raw["source"]),
-        grid=GridConfig(**raw["grid"]),
+        grid=grid_config(raw["grid"]),
         channels=ChannelConfig(**channels),
         frames=raw["window"]["frames"],
         step_hours=raw["window"]["step_hours"],

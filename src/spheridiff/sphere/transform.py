@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import torch
 from torch import nn
@@ -33,18 +35,15 @@ def check_degrees(grid, degrees, method):
         raise ValueError(f"{degrees} degrees need more coefficients than the grid has points")
 
 
-class SphericalTransform(nn.Module):
-    def __init__(self, grid, degrees=None, analysis="quadrature"):
+class MatrixTransform(nn.Module):
+    def __init__(self, analysis, synthesis, grid, noise_variance):
         super().__init__()
-        self.degrees = degrees or grid.bandlimit
-        check_degrees(grid, self.degrees, analysis)
-        self.coefficients = self.degrees**2
+        self.coefficients = synthesis.shape[0]
         self.height = grid.height
         self.width = grid.width
-        harmonics = real_harmonics(grid.latitudes, grid.longitudes, self.degrees)
-        matrix = analysis_matrix(harmonics, sphere_quadrature(grid), analysis)
-        self.register_buffer("analysis", torch.tensor(matrix, dtype=torch.float32), persistent=False)
-        synthesis = torch.tensor(np.ascontiguousarray(harmonics.T), dtype=torch.float32)
+        self.noise_variance = noise_variance
+        self.register_buffer("analysis", torch.tensor(analysis, dtype=torch.float32), persistent=False)
+        synthesis = torch.tensor(np.ascontiguousarray(synthesis), dtype=torch.float32)
         self.register_buffer("synthesis", synthesis, persistent=False)
 
     def analyse(self, field):
@@ -70,6 +69,20 @@ class SphericalTransform(nn.Module):
         return torch.matmul(self.synthesis.mT, coefficients)
 
 
+class SphericalTransform(MatrixTransform):
+    def __init__(self, grid, degrees=None, analysis="quadrature"):
+        degrees = degrees or grid.bandlimit
+        check_degrees(grid, degrees, analysis)
+        harmonics = real_harmonics(grid.latitudes, grid.longitudes, degrees)
+        matrix = analysis_matrix(harmonics, sphere_quadrature(grid), analysis)
+        super().__init__(matrix, harmonics.T, grid, 4.0 * math.pi / degrees**2)
+        self.degrees = degrees
+
+
 def build_transform(grid, settings=None):
     settings = settings or {}
+    if settings.get("kind") == "slepian":
+        from .slepian import SlepianTransform
+
+        return SlepianTransform(grid, settings["bandlimit"])
     return SphericalTransform(grid, settings.get("bandlimit"), settings.get("analysis", "quadrature"))

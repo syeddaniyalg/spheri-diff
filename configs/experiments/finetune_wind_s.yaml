@@ -1,0 +1,8 @@
+name: finetune_wind_s
+data: era5_1p5deg_south_asia
+model: wind_s
+train: finetune
+evaluation: pilot
+seed: 42
+pretrained: pilot/pilot_wind_s/milestone_022500.pt
+adaptation: full

@@ -43,7 +43,24 @@ class DiagonalLowRankMixing(SpectralStage):
             return torch.diag(self.diagonal) + self.left @ self.right.mT
 
 
+class SlepianMixing(SpectralStage):
+    def __init__(self, transform):
+        super().__init__(transform)
+        size = transform.coefficients
+        self.restricted = nn.Parameter(torch.zeros(size, size), requires_grad=False)
+        self.delta = nn.Parameter(torch.zeros(size, size))
+
+    def mix(self, coefficients):
+        return torch.matmul((self.restricted + self.delta).mT, coefficients)
+
+    def dense_weight(self):
+        with torch.no_grad():
+            return self.restricted + self.delta
+
+
 def build_mixing(transform, rank=None):
+    if hasattr(transform, "basis"):
+        return SlepianMixing(transform)
     if rank is None:
         return SpectralMixing(transform)
     return DiagonalLowRankMixing(transform, rank)

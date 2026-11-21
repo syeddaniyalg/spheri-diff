@@ -1,0 +1,50 @@
+[
+  {
+    "job": "pilot_spheridiff_l31_xs",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 6106.60528755188
+  },
+  {
+    "job": "pilot_spheridiff_l31_b4",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 21857.836435079575
+  },
+  {
+    "job": "pilot_spheridiff_l31_s",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 8446.569873332977
+  },
+  {
+    "job": "pilot_spheridiff_l31_m",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 13142.157477140427
+  },
+  {
+    "job": "final_pilot_spheridiff_l31_xs",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 1638.3336608409882
+  },
+  {
+    "job": "final_pilot_spheridiff_l31_b4",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 6191.9376838207245
+  },
+  {
+    "job": "final_pilot_spheridiff_l31_s",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 2217.648794412613
+  },
+  {
+    "job": "final_pilot_spheridiff_l31_m",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 3532.5634305477142
+  }
+]

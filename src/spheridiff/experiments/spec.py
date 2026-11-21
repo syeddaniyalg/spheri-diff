@@ -13,6 +13,8 @@ class ExperimentSpec:
     evaluation: str
     seed: int = DEFAULT_SEED
     pilot_train: str = "pilot"
+    pretrained: str = None
+    adaptation: str = "full"
 
 
 def load_experiment(value):

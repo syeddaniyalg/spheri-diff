@@ -6,3 +6,4 @@ Result files of the experiments are stored here. Large artifacts such as checkpo
 
 - **Smoke test**: the reports, evaluation logs and figures of the smoke test run on Kaggle. See [smoke/README.md](smoke/README.md).
 - **Pilot**: the training records, final evaluation tables, comparisons and figures of the pilot run on Kaggle. See [pilot/README.md](pilot/README.md).
+- **Pilot at band limit 31**: the training records, final evaluation table and comparisons of the four SpherIDiff sizes trained at L = 31 for 25,000 steps. See [pilot_l31/README.md](pilot_l31/README.md).

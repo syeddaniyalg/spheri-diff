@@ -8,6 +8,7 @@ from spheridiff.common.config import SECONDS_PER_DAY
 from .layout import CacheLayout, write_array
 from .source import (
     close_source,
+    crop_region,
     load_static,
     open_source,
     select_year,
@@ -66,7 +67,8 @@ def download_all(config, years=None):
     layout = CacheLayout(config.cache_root)
     selected = select_years(config, years)
     layout.create()
-    dataset = open_source(config.source)
+    source = open_source(config.source)
+    dataset = crop_region(source, config.grid)
     try:
         if not layout.static_path.exists():
             download_static(dataset, config, layout)
@@ -78,4 +80,4 @@ def download_all(config, years=None):
             progress.set_postfix(year=year)
             download_year(dataset, config, year, layout, show_progress=True)
     finally:
-        close_source(dataset)
+        close_source(source)

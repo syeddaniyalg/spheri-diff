@@ -30,7 +30,18 @@ TIMEMATCHED_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_timematched.ip
 VARIANTS_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_variants.ipynb"
 COOLDOWN_NOTEBOOK = PROJECT_ROOT / "notebooks" / "colab_pilot_cooldown.ipynb"
 L31_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_l31.ipynb"
-NOTEBOOKS = [NOTEBOOK, PILOT_NOTEBOOK, TIMEMATCHED_NOTEBOOK, VARIANTS_NOTEBOOK, COOLDOWN_NOTEBOOK, L31_NOTEBOOK]
+FINETUNE_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_finetune.ipynb"
+RANK_NOTEBOOK = PROJECT_ROOT / "notebooks" / "colab_pilot_l31_rank128.ipynb"
+NOTEBOOKS = [
+    NOTEBOOK,
+    PILOT_NOTEBOOK,
+    TIMEMATCHED_NOTEBOOK,
+    VARIANTS_NOTEBOOK,
+    COOLDOWN_NOTEBOOK,
+    L31_NOTEBOOK,
+    FINETUNE_NOTEBOOK,
+    RANK_NOTEBOOK,
+]
 
 
 def python_files():
@@ -180,6 +191,31 @@ def test_band_limit_31_notebook_trains_one_run_per_gpu_at_a_time():
     assert "DEADLINE" not in source and "smoke" not in source
 
 
+def test_finetune_notebook_keeps_wind_and_spheridiff_on_separate_gpus():
+    source = notebook_source(FINETUNE_NOTEBOOK)
+    for path in (CONFIG_ROOT / "experiments").glob("finetune_*.yaml"):
+        assert f'"{path.stem}"' in source
+    assert "PLACEMENT = [(0, queue(WIND_EXPERIMENTS)), (1, queue(SPHERIDIFF_EXPERIMENTS))]" in source
+    assert "finetune_job(name, PRETRAINED_ROOT)" in source and "ZERO_SHOT_SUFFIX" in source
+    assert "finetune_results.zip" in source and "final_names=ZERO_SHOT_NAMES + RUN_NAMES" in source
+    assert (PROJECT_ROOT / "scripts" / "finetune.py").exists()
+
+
+def test_rank_ablation_notebook_runs_on_colab_with_the_kaggle_data():
+    source = notebook_source(RANK_NOTEBOOK)
+    assert 'EXPERIMENT = "pilot_spheridiff_l31_b4_r128"' in source
+    assert "google.colab" in source and "/kaggle" not in source
+    assert 'kagglehub.dataset_download(KAGGLE_DATASET)' in source and "thesyeddaniyal/era5-pilot-6degrees" in source
+    assert "JOBS = [train_job(EXPERIMENT), final_job(EXPERIMENT, FINAL_PROTOCOL)]" in source
+    assert "RESULTS_ARCHIVE = DRIVE_ROOT /" in source and "unpack(RESULTS_ARCHIVE, RUNS_ROOT)" in source
+    base, ablation = load_experiment("pilot_spheridiff_l31_b4"), load_experiment("pilot_spheridiff_l31_b4_r128")
+    assert (ablation.train, ablation.evaluation, ablation.seed) == (base.train, base.evaluation, base.seed)
+    first = yaml.safe_load((CONFIG_ROOT / "model" / "spheridiff_l31_b4.yaml").read_text())
+    second = yaml.safe_load((CONFIG_ROOT / "model" / "spheridiff_l31_b4_r128.yaml").read_text())
+    assert second["architecture"].pop("rank") == 128 and first["architecture"].pop("rank") == 32
+    assert first == second
+
+
 def test_time_matched_config_changes_only_the_length():
     pilot, long = load_train_settings("pilot"), load_train_settings("pilot_long")
     assert long.steps == 3 * pilot.steps
@@ -257,6 +293,7 @@ def test_command_line_scripts_start():
     }
     for script in (
         "train",
+        "finetune",
         "cooldown",
         "evaluate",
         "smoke",

@@ -1,0 +1,8 @@
+name: finetune_spheridiff_l31_b4
+data: era5_1p5deg_south_asia
+model: spheridiff_regional_b4
+train: finetune
+evaluation: pilot
+seed: 42
+pretrained: pilot_l31/pilot_spheridiff_l31_b4/ema_weights.pt
+adaptation: delta_and_pointwise

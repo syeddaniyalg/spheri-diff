@@ -17,7 +17,15 @@ def build_parser():
     parser.add_argument("--protocol", default="final_v1")
     parser.add_argument("--runs-root", default=str(DEFAULT_RUNS_ROOT))
     parser.add_argument("--cache-root", default=None)
+    parser.add_argument("--run-names", nargs="+", default=None)
     return parser
+
+
+def run_names(arguments):
+    names = arguments.run_names or [None] * len(arguments.experiments)
+    if len(names) != len(arguments.experiments):
+        raise SystemExit("--run-names needs one name for every experiment")
+    return names
 
 
 def main():
@@ -26,9 +34,10 @@ def main():
     protocol = load_protocol(arguments.protocol)
     config = load_data_config(load_experiment(arguments.experiments[0]).data, arguments.cache_root)
     datasets = final_datasets(config, protocol)
-    for experiment in tqdm(arguments.experiments, desc="final evaluation"):
-        run_final_evaluation(experiment, protocol, arguments.runs_root, arguments.cache_root, device, datasets)
-        tqdm.write(f"saved the final evaluation of {experiment}")
+    pairs = list(zip(arguments.experiments, run_names(arguments)))
+    for experiment, name in tqdm(pairs, desc="final evaluation"):
+        run_final_evaluation(experiment, protocol, arguments.runs_root, arguments.cache_root, device, datasets, name)
+        tqdm.write(f"saved the final evaluation of {name or experiment}")
 
 
 if __name__ == "__main__":

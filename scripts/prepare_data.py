@@ -18,8 +18,12 @@ def run_download(config, arguments):
 
 
 def run_statistics(config, arguments):
-    from spheridiff.data.statistics import build_statistics
+    from spheridiff.data.statistics import build_statistics, copy_statistics
 
+    if arguments.statistics_from:
+        copy_statistics(config, load_data_config(arguments.statistics_from))
+        print(f"statistics copied from {arguments.statistics_from}")
+        return 0
     build_statistics(config)
     print("statistics saved")
     return 0
@@ -58,6 +62,11 @@ def build_parser():
         nargs="+",
         default=None,
         help="download only these years (default: every year in the splits)",
+    )
+    parser.add_argument(
+        "--statistics-from",
+        default=None,
+        help="copy the statistics of another data config instead of computing them",
     )
     return parser
 

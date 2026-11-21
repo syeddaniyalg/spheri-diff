@@ -1,0 +1,8 @@
+name: finetune_spheridiff_b4_l16_delta_only
+data: era5_1p5deg_south_asia
+model: spheridiff_regional_b4
+train: finetune
+evaluation: pilot
+seed: 42
+pretrained: pilot/pilot_spheridiff_b4/milestone_022500.pt
+adaptation: delta_only

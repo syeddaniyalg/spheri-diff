@@ -90,3 +90,11 @@ def build_statistics(config):
     )
     save_statistics(statistics, layout.stats_path)
     return statistics
+
+
+def copy_statistics(config, source_config):
+    source = load_statistics(CacheLayout(source_config.cache_root).stats_path)
+    if source.names != channel_names(config.channels):
+        raise ValueError("the source statistics were built for a different channel set")
+    save_statistics(source, CacheLayout(config.cache_root).stats_path)
+    return source

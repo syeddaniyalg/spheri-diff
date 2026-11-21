@@ -92,6 +92,23 @@ The four SpherIDiff sizes are trained again with band limit L = 31 and the amend
 - **Final evaluation.** When all training jobs have ended, every run is evaluated under the fixed protocol `final_v1` on the same two queues.
 - **Comparison.** When the output of the main pilot is attached as a Kaggle input, every run is compared with the WIND runs and with the main SpherIDiff run at L = 16. These references were trained for 45,000 steps, so the paired difference of the final errors favours them. Their errors at 25,000 steps appear among the errors at fixed fractions of training and in the evaluation curves.
 
+## Rank ablation at band limit 31
+
+The run `pilot_spheridiff_l31_b4_r128` repeats `pilot_spheridiff_l31_b4` with rank r = 128 instead of r = 32 in the spectral weight W = D + P Q^T, to test whether the rank limited the result. This raises the parameters from 1,589,277 to 2,327,325, still below WIND-S. Only the rank changes (`configs/model/spheridiff_l31_b4_r128.yaml`), and the run uses the same 25,000-step budget and seed.
+
+- **Notebook.** `notebooks/colab_pilot_l31_rank128.ipynb` runs on Google Colab with one T4 GPU. It downloads the ERA5 cache at 5.6 degrees from the public Kaggle dataset `thesyeddaniyal/era5-pilot-6degrees` with `kagglehub`, trains the run and evaluates it under `final_v1`.
+- **Results on Drive.** The runs folder is packed into `spheridiff_l31_rank128_results.zip` on Google Drive every 15 minutes and at the end. A new session unpacks this archive first, so the training continues from its last checkpoint.
+
+## Regional fine-tuning
+
+The pre-trained models are adapted to a regional patch at 1.5 degrees (16 x 16 points over South Asia, see [docs/data/era5_1p5deg_south_asia.md](../data/era5_1p5deg_south_asia.md)). Every model is evaluated without training (zero-shot) and after 5,000 steps of fine-tuning (`configs/train/finetune.yaml`, evaluation every 250 steps). The runs are defined by the experiments `finetune_*` and run by `scripts/finetune.py` and `notebooks/kaggle_pilot_finetune.ipynb`.
+
+- **Starting weights.** WIND-S, M and L and the b4 model at L = 16 start from their 22,500-step milestones, the closest checkpoints to the 25,000-step budget. The four models at L = 31 start from their final 25,000-step weights. The EMA weights of each checkpoint are used.
+- **WIND.** All weights are fine-tuned. The learned weights do not depend on the grid size, and the rotary position embeddings are rebuilt for the patch.
+- **SpherIDiff.** The spectral stage works in the Slepian basis of the patch. With the band limit L' = 61 of the 1.5 degree grid, the Shannon number of the patch is M = 45. The pre-trained weight of each block is restricted to these modes, G0 = U_M^T W0 U_M, with W0 embedded in the first coefficients of the larger basis, and kept frozen. A trainable M x M update dG is added, which starts at zero, so that the fine-tuned model starts at the zero-shot model. Training dG directly reaches the same regional operators as the factors A B of the proposal, with M^2 = 2,025 instead of 2 K' M = 334,890 parameters per block. The adaptation `delta_and_pointwise` also fine-tunes the pointwise weights, and `delta_only` trains dG alone.
+- **Zero-shot.** Before its first step, the fine-tuning job saves the transferred weights in a run folder ending in `_zeroshot`, which the final evaluation reads like any other run.
+- **Placement.** The first GPU runs the WIND jobs and the second GPU the SpherIDiff jobs. Each queue fine-tunes its models and then evaluates them.
+
 ## Cooldown test of the step budget
 
 Under the cosine schedule the late part of a learning curve flattens partly because the learning rate decays, so the curve alone does not show how many steps a run needed. The cooldown test measures this from the milestone checkpoints of the main pilot, without training the runs again.

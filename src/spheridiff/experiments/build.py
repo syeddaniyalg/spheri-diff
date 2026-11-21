@@ -11,6 +11,7 @@ from spheridiff.data.loading import build_dataset, load_dataset_statistics, load
 from spheridiff.data.postprocess import PhysicalConverter
 from spheridiff.diffusion.process import build_process
 from spheridiff.diffusion.weights import loss_weights
+from spheridiff.finetune.transfer import apply_adaptation
 from spheridiff.evaluation.context import EvaluationContext
 from spheridiff.evaluation.forecast import ForecastEvaluator
 from spheridiff.evaluation.full import FullEvaluation
@@ -50,7 +51,7 @@ def build_components(spec, cache_root=None):
     auxiliary = auxiliary_channel_count(config.channels.static_fields)
     context = ModelContext(len(names), auxiliary, config.frames, grid, model_spec.sphere)
     torch.manual_seed(spec.seed)
-    model = build_model(model_spec.name, model_spec.architecture, context)
+    model = apply_adaptation(build_model(model_spec.name, model_spec.architecture, context), spec.adaptation)
     return Components(spec, config, grid, statistics, names, process, model_spec, model)
 
 
@@ -109,8 +110,10 @@ def run_metadata(spec, settings, components, device):
     }
 
 
-def build_trainer(spec, device, runs_root, cache_root=None, settings=None, run_name=None):
+def build_trainer(spec, device, runs_root, cache_root=None, settings=None, run_name=None, prepare_model=None):
     components = build_components(spec, cache_root)
+    if prepare_model is not None:
+        prepare_model(components.model)
     settings = settings or load_train_settings(spec.train)
     dataset = training_dataset(components, settings)
     evaluator = periodic_evaluation(components, settings, evaluation_dataset(components, settings, dataset), device)
