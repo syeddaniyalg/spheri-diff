@@ -27,16 +27,35 @@ def restrict(weight, basis):
     return top.mT @ weight @ top
 
 
+def restrict_per_channel(weight, kappa, basis):
+    coefficients = weight.shape[0]
+    top = basis[:coefficients].double()
+    degrees = torch.arange(coefficients).float().sqrt().floor().long()
+    shared = top.mT @ weight @ top
+    filters = kappa.double()[degrees]
+    own = torch.einsum("ki,kc,kj->cij", top, filters, top)
+    return shared[None] + own
+
+
+def restricted_value(name, parameter, weights, module):
+    prefix = name[: -len(".restricted")]
+    weight = dense_spectral_weight(weights, prefix)
+    transform = module.get_submodule(prefix).transform
+    if weight.shape[0] > transform.degrees**2:
+        raise ValueError(f"the pretrained band limit ({weight.shape[0]} coefficients) exceeds the regional one")
+    basis = transform.harmonic_basis(weight.shape[0])
+    if parameter.ndim == 3:
+        if f"{prefix}.kappa" not in weights:
+            raise ValueError(f"the pretrained weights have no degree filters for '{prefix}'")
+        return restrict_per_channel(weight, weights[f"{prefix}.kappa"], basis).to(parameter.dtype)
+    return restrict(weight, basis).to(parameter.dtype)
+
+
 def transferred_value(name, parameter, weights, module):
     if name.endswith(DELTA_SUFFIX):
         return torch.zeros_like(parameter)
     if name.endswith(RESTRICTED_SUFFIX):
-        prefix = name[: -len(".restricted")]
-        weight = dense_spectral_weight(weights, prefix)
-        transform = module.get_submodule(prefix).transform
-        if weight.shape[0] > transform.degrees**2:
-            raise ValueError(f"the pretrained band limit ({weight.shape[0]} coefficients) exceeds the regional one")
-        return restrict(weight, transform.harmonic_basis(weight.shape[0])).to(parameter.dtype)
+        return restricted_value(name, parameter, weights, module)
     if name not in weights or weights[name].shape != parameter.shape:
         raise ValueError(f"the pretrained weights have no matching entry for '{name}'")
     return weights[name]

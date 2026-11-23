@@ -80,6 +80,20 @@ The pooled model (`spheridiff_pooled`, in `src/spheridiff/models/spheridiff/pool
 
 On the regional patch (configurations ending in `_regional`), every level uses the Slepian basis of the patch at its own band limit: L' = 120 at the finest level, the least-squares limit of the 1.5 degree grid, and half of it at each coarser level. The coarser patch levels have their points at the centres of 2 x 2 blocks of the level above. Slepian bases at different band limits are not nested, so regional pooling is a least-squares projection onto the Slepian functions of the coarser level. The Slepian functions are computed with the reproducing kernel of the band-limited space on a 64 x 64 Gauss quadrature of the patch (`KernelSlepianTransform`), which avoids an eigenvalue problem of size K' x K' and gives the same functions as the earlier construction.
 
+### Options of the pooled model
+
+Three further options of `spheridiff_pooled` each change one part of the model. They are off by default.
+
+- **`degree_filters`.** Every spectral stage gains one value per degree and channel, kappa_c(l), so that channel c is mixed with W + diag(kappa_c(l)). The values start at zero. On the regional patch, each channel has its own frozen restricted matrix U_M^T (W + diag(kappa_c)) U_M, and the trainable update stays shared over the channels.
+- **`noise_conditioning`.** The network receives the noise level of every frame. An embedding of the level is added to the features after the uplift, with a zero-initialised output layer. The training loss and the DDIM sampler pass the levels to the model before each call, with level zero for clean context frames. This departs from WIND, which infers the noise level from the data.
+- **`space_time_attention`.** At the coarsest level, the temporal attention at each point is replaced by one attention over all points and frames of that level, with the same weights and the rotary embedding over the frame index.
+
+| Name | Option | Parameters |
+|---|---|---|
+| `spheridiff_pooled3_filters` | `degree_filters` | 2,669,886 |
+| `spheridiff_pooled3_noise` | `noise_conditioning` | 2,662,526 |
+| `spheridiff_pooled3_spacetime` | `space_time_attention` | 2,658,238 |
+
 ## Speed notes
 
 A profile on the pilot sizes showed that SpherIDiff was limited by memory traffic of element-wise operations on its full-resolution tensors, not by arithmetic. Two changes that keep the mathematics the same were applied: the RMS normalisation uses the fused `torch.nn.functional.rms_norm` when it exists (with the original formula as a fallback), and the five-frame temporal attention is written as two small `einsum` products with a rotary embedding on the frame axis. In a local test they gave about 1.95 times the training speed with the same outputs (relative difference 8e-7 in fp32, and no added error in fp16 beyond the fp16 error of the original). The spectral stage still runs in fp32. Running it in fp16 would be faster still, with a small extra error, and was not adopted.

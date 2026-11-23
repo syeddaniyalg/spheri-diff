@@ -1,5 +1,7 @@
 import torch
 
+from .objective import inform_levels
+
 
 class ModelDenoiser:
     def __init__(self, model, autocast_dtype=None):
@@ -19,11 +21,27 @@ def initial_state(process, shape, device, generator):
     return scale * process.noise.sample(shape, device, generator)
 
 
+def frame_levels(state, level, mask):
+    batch, frames = state.shape[:2]
+    levels = torch.full((batch, frames), float(level), device=state.device)
+    if mask is None:
+        return levels
+    clean = mask.reshape(mask.shape[0], mask.shape[1], -1).all(dim=-1).expand(batch, frames)
+    return torch.where(clean, torch.zeros_like(levels), levels)
+
+
+def denoising_model(denoiser):
+    while hasattr(denoiser, "base"):
+        denoiser = denoiser.base
+    return getattr(denoiser, "model", None)
+
+
 def ddim_step(denoiser, process, state, auxiliary, levels, context, mask):
     level, next_level = levels
     alpha, sigma = process.schedule(level)
     next_alpha, next_sigma = process.schedule(next_level)
     visible = state if mask is None else torch.where(mask, context, state)
+    inform_levels(denoising_model(denoiser), frame_levels(state, level, mask))
     estimate = denoiser(visible, auxiliary, level)
     direction = (state - alpha * estimate) / sigma
     return next_alpha * estimate + next_sigma * direction

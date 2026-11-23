@@ -32,6 +32,7 @@ COOLDOWN_NOTEBOOK = PROJECT_ROOT / "notebooks" / "colab_pilot_cooldown.ipynb"
 L31_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_l31.ipynb"
 FINETUNE_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_finetune.ipynb"
 POOLED_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_pooled.ipynb"
+POOLED_FIXES_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_pooled_fixes.ipynb"
 RANK_NOTEBOOK = PROJECT_ROOT / "notebooks" / "colab_pilot_l31_rank128.ipynb"
 NOTEBOOKS = [
     NOTEBOOK,
@@ -229,6 +230,17 @@ def test_pooled_notebook_runs_every_variant_from_pretraining_to_fine_tuning():
     assert "finetune_job(finetuning, RUNS_ROOT, REGIONAL_CACHE)" in source
     assert "era5-pilot-6degrees" in source and "era5-1-5-southasia" in source
     assert "pooled_results.zip" in source and "DEADLINE" not in source
+
+
+def test_pooled_fixes_notebook_runs_the_three_variants():
+    source = notebook_source(POOLED_FIXES_NOTEBOOK)
+    assert 'FIRST_GPU_VARIANTS = ["pooled3_filters", "pooled3_spacetime"]' in source
+    assert 'SECOND_GPU_VARIANTS = ["pooled3_noise"]' in source
+    for name in ("pooled3_filters", "pooled3_noise", "pooled3_spacetime"):
+        for prefix in ("pilot", "finetune"):
+            assert (CONFIG_ROOT / "experiments" / f"{prefix}_{name}.yaml").exists()
+    assert "finetune_job(finetuning, RUNS_ROOT, REGIONAL_CACHE)" in source
+    assert "pooled_fixes_results.zip" in source and "DEADLINE" not in source
 
 
 def test_time_matched_config_changes_only_the_length():

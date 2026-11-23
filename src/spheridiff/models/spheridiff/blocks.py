@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as functional
 from torch import nn
 
 from spheridiff.models.layers.init import zeroed
@@ -43,11 +44,22 @@ class TemporalAttention(nn.Module):
         return self.output(attended.reshape(batch, frames, points, width))
 
 
+class SpaceTimeAttention(TemporalAttention):
+    def forward(self, values):
+        batch, frames, points, width = values.shape
+        shaped = self.projection(values).view(batch, frames, points, 3, self.heads, -1)
+        query, key, value = shaped.unbind(3)
+        query, key = self.rotate(query, frames), self.rotate(key, frames)
+        tokens = [part.reshape(batch, frames * points, self.heads, -1).transpose(1, 2) for part in (query, key, value)]
+        attended = functional.scaled_dot_product_attention(*tokens)
+        return self.output(attended.transpose(1, 2).reshape(batch, frames, points, width))
+
+
 class SpherIDiffBlock(nn.Module):
-    def __init__(self, in_width, out_width, heads, frames, transform, rank=None):
+    def __init__(self, in_width, out_width, heads, frames, transform, rank=None, degree_filters=False):
         super().__init__()
         self.spectral_norm = RMSNorm(in_width)
-        self.spectral = build_mixing(transform, rank)
+        self.spectral = build_mixing(transform, rank, in_width if degree_filters else None)
         self.mlp_norm = RMSNorm(in_width)
         self.mlp = ChannelMlp(in_width, out_width)
         self.shortcut = (

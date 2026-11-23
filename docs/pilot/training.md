@@ -118,6 +118,10 @@ The four pooled variants (see [models.md](models.md#pooled-spheridiff)) are pre-
 - **Placement.** The first GPU runs the two dense variants and the second GPU the two variants with r = 32. Each queue completes one variant (pre-training, global evaluation, fine-tuning, two regional evaluations) before it starts the next. Each job is given its own data cache, global or regional.
 - **Tables.** The global table is `final_evaluation_summary.txt` and the regional table is `regional/final_evaluation_summary.txt`.
 
+## Pooled SpherIDiff with targeted changes
+
+The three options of the pooled model (see [models.md](models.md#options-of-the-pooled-model)) are tested on `spheridiff_pooled3_dense` by `notebooks/kaggle_pilot_pooled_fixes.ipynb`, with the same pipeline as the pooled experiment: 25,000 steps of pre-training, the global evaluation, 5,000 steps of fine-tuning on the regional patch, and the regional evaluations zero-shot and after fine-tuning. The first GPU runs the variants with degree filters and with space-time attention, and the second GPU the variant with noise conditioning. The unchanged model from the pooled experiment is the reference. The results are packed into `pooled_fixes_results.zip`.
+
 ## Cooldown test of the step budget
 
 Under the cosine schedule the late part of a learning curve flattens partly because the learning rate decays, so the curve alone does not show how many steps a run needed. The cooldown test measures this from the milestone checkpoints of the main pilot, without training the runs again.

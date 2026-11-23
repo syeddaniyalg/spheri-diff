@@ -1,0 +1,6 @@
+name: pilot_pooled3_spacetime
+data: era5_5p6deg
+model: spheridiff_pooled3_spacetime
+train: pilot_25k
+evaluation: pilot
+seed: 42

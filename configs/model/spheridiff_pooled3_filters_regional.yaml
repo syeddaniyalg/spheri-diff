@@ -1,0 +1,17 @@
+name: spheridiff_pooled
+
+sphere:
+  kind: slepian
+  method: kernel
+  bandlimit: 120
+
+diffusion:
+  noise: spectral
+  projection: band_limit
+
+architecture:
+  base_width: 64
+  levels: 3
+  heads: 4
+  spectral_precision: fp16
+  degree_filters: true

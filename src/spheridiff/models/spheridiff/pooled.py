@@ -5,7 +5,7 @@ from torch import nn
 
 from spheridiff.models.layers.init import zeroed
 
-from .blocks import SpherIDiffBlock
+from .blocks import SpaceTimeAttention, SpherIDiffBlock
 from .levels import LevelPlan
 
 SPECTRAL_PRECISIONS = ("fp32", "fp16")
@@ -18,6 +18,9 @@ class PooledConfig:
     heads: int = 4
     rank: int = None
     spectral_precision: str = "fp32"
+    degree_filters: bool = False
+    noise_conditioning: bool = False
+    space_time_attention: bool = False
 
     @property
     def widths(self):
@@ -40,7 +43,9 @@ class PooledSpherIDiff(nn.Module):
         transforms, widths, frames = self.plan.transforms, config.widths, context.frames
 
         def block(level, incoming, outgoing):
-            return SpherIDiffBlock(incoming, outgoing, config.heads, frames, transforms[level], config.rank)
+            return SpherIDiffBlock(
+                incoming, outgoing, config.heads, frames, transforms[level], config.rank, config.degree_filters
+            )
 
         deepest = config.levels - 1
         self.uplift = nn.Linear(context.channels + context.auxiliary_channels, widths[0])
@@ -48,7 +53,26 @@ class PooledSpherIDiff(nn.Module):
         self.middle = block(deepest, widths[deepest - 1], widths[deepest])
         self.up = nn.ModuleList([block(level, widths[level + 1], widths[level]) for level in range(deepest)])
         self.downlift = zeroed(nn.Linear(widths[0], context.channels))
+        if config.space_time_attention:
+            self.middle.attention = SpaceTimeAttention(widths[deepest], config.heads, frames)
+        self.level_embedding = None
+        if config.noise_conditioning:
+            self.level_embedding = nn.Sequential(nn.Linear(1, widths[0]), nn.SiLU(), zeroed(nn.Linear(widths[0], widths[0])))
+        self.frame_levels = None
         self.set_half_precision(config.spectral_precision == "fp16")
+
+    def set_frame_levels(self, levels):
+        self.frame_levels = levels
+
+    def condition(self, values):
+        if self.level_embedding is None:
+            return values
+        batch, frames = values.shape[:2]
+        levels = self.frame_levels
+        if levels is None or levels.shape != (batch, frames):
+            levels = torch.zeros(batch, frames, device=values.device)
+        embedding = self.level_embedding(levels.to(device=values.device, dtype=values.dtype)[..., None])
+        return values + embedding[:, :, None, :].to(values.dtype)
 
     def set_half_precision(self, enabled):
         self.plan.set_half_precision(enabled)
@@ -59,7 +83,7 @@ class PooledSpherIDiff(nn.Module):
     def forward(self, noisy, auxiliary):
         batch, frames, _, height, width = noisy.shape
         merged = torch.cat([noisy, auxiliary], dim=2)
-        values = self.uplift(merged.permute(0, 1, 3, 4, 2).reshape(batch, frames, height * width, -1))
+        values = self.condition(self.uplift(merged.permute(0, 1, 3, 4, 2).reshape(batch, frames, height * width, -1)))
         skips = []
         for level, block in enumerate(self.down):
             values = block(values if level == 0 else self.plan.pools[level - 1](values))

@@ -62,9 +62,40 @@ class SlepianMixing(SpectralStage):
             return self.restricted + self.delta
 
 
-def build_mixing(transform, rank=None):
-    if getattr(transform, "regional", False):
+def degree_index(coefficients):
+    return torch.arange(coefficients).float().sqrt().floor().long()
+
+
+class DegreeFilteredMixing(SpectralMixing):
+    def __init__(self, transform, width):
+        super().__init__(transform)
+        self.kappa = nn.Parameter(torch.zeros(transform.degrees, width))
+        self.register_buffer("degrees_of", degree_index(transform.coefficients), persistent=False)
+
+    def mix(self, coefficients):
+        return super().mix(coefficients) + self.kappa[self.degrees_of] * coefficients
+
+
+class SlepianChannelMixing(SpectralStage):
+    def __init__(self, transform, width):
+        super().__init__(transform)
+        size = transform.coefficients
+        self.restricted = nn.Parameter(torch.zeros(width, size, size), requires_grad=False)
+        self.delta = nn.Parameter(torch.zeros(size, size))
+
+    def mix(self, coefficients):
+        own = torch.einsum("cij,...ic->...jc", self.restricted.to(coefficients.dtype), coefficients)
+        return own + torch.matmul(self.delta.mT, coefficients)
+
+
+def build_mixing(transform, rank=None, filter_width=None):
+    regional = getattr(transform, "regional", False)
+    if regional and filter_width is not None:
+        return SlepianChannelMixing(transform, filter_width)
+    if regional:
         return SlepianMixing(transform)
+    if filter_width is not None:
+        return DegreeFilteredMixing(transform, filter_width)
     if rank is None:
         return SpectralMixing(transform)
     return DiagonalLowRankMixing(transform, rank)
