@@ -1,0 +1,6 @@
+name: pilot_pooled4_dense
+data: era5_5p6deg
+model: spheridiff_pooled4_dense
+train: pilot_25k
+evaluation: pilot
+seed: 42

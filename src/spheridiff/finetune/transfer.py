@@ -32,8 +32,11 @@ def transferred_value(name, parameter, weights, module):
         return torch.zeros_like(parameter)
     if name.endswith(RESTRICTED_SUFFIX):
         prefix = name[: -len(".restricted")]
-        basis = module.get_submodule(prefix).transform.basis
-        return restrict(dense_spectral_weight(weights, prefix), basis).to(parameter.dtype)
+        weight = dense_spectral_weight(weights, prefix)
+        transform = module.get_submodule(prefix).transform
+        if weight.shape[0] > transform.degrees**2:
+            raise ValueError(f"the pretrained band limit ({weight.shape[0]} coefficients) exceeds the regional one")
+        return restrict(weight, transform.harmonic_basis(weight.shape[0])).to(parameter.dtype)
     if name not in weights or weights[name].shape != parameter.shape:
         raise ValueError(f"the pretrained weights have no matching entry for '{name}'")
     return weights[name]

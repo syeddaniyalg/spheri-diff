@@ -1,0 +1,16 @@
+name: spheridiff_pooled
+
+sphere:
+  bandlimit: 31
+  analysis: least_squares
+
+diffusion:
+  noise: spectral
+  projection: band_limit
+
+architecture:
+  base_width: 32
+  levels: 4
+  heads: 4
+  rank: 32
+  spectral_precision: fp16

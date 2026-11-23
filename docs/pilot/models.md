@@ -62,6 +62,24 @@ With L = 16, the band-limited target leaves part of every field out of reach. On
 
 With a dense weight at L = 31, the same sizes would have about 1.99M, 3.78M, 4.03M and 5.03M parameters. The arithmetic of the spectral stage grows with K whatever the form of the weight, so a step at L = 31 is expected to take longer than at L = 16. The speed on the T4 has not been measured.
 
+## Pooled SpherIDiff
+
+The pooled model (`spheridiff_pooled`, in `src/spheridiff/models/spheridiff/pooled.py` and `levels.py`) runs its blocks at several resolution levels, as the levels of a U-Net, to reduce the training time.
+
+- **Levels.** Each level is an equiangular grid with poles of half the height and width of the level above (32 x 64, 16 x 32, 8 x 16, 4 x 8). Its band limit is the largest degree for which the least-squares fit has full rank, min(H - 1, W/2), which gives L = 31, 15, 7 and 3.
+- **Pooling.** Going down, the field is analysed at the finer band limit, the degrees below the coarser band limit are kept, and the result is synthesised on the coarser grid. Going up, the coarse field is synthesised on the finer grid and added to the skip connection of that level. The width doubles at each level down.
+- **Blocks.** One block per level on the way down, one at the bottom, and one per level on the way up. Each block is the SpherIDiff block with the transform of its level.
+- **Precision.** With `spectral_precision: fp16`, the spectral stages and the pooling run in 16-bit precision. In a test on the RTX 4050 over 1,000 steps, this left the validation error unchanged to within 0.001 and reduced the time per step by 25% (3 levels) and 43% (4 levels).
+
+| Name | Levels | Widths | Spectral weight | Parameters |
+|---|---|---|---|---|
+| `spheridiff_pooled3_dense` | 3 | 64, 128, 256 | dense | 2,658,238 |
+| `spheridiff_pooled3_rank32` | 3 | 64, 128, 256 | D + P Q^T, r = 32 | 864,910 |
+| `spheridiff_pooled4_dense` | 4 | 32, 64, 128, 256 | dense | 2,674,448 |
+| `spheridiff_pooled4_rank32` | 4 | 32, 64, 128, 256 | D + P Q^T, r = 32 | 882,408 |
+
+On the regional patch (configurations ending in `_regional`), every level uses the Slepian basis of the patch at its own band limit: L' = 120 at the finest level, the least-squares limit of the 1.5 degree grid, and half of it at each coarser level. The coarser patch levels have their points at the centres of 2 x 2 blocks of the level above. Slepian bases at different band limits are not nested, so regional pooling is a least-squares projection onto the Slepian functions of the coarser level. The Slepian functions are computed with the reproducing kernel of the band-limited space on a 64 x 64 Gauss quadrature of the patch (`KernelSlepianTransform`), which avoids an eigenvalue problem of size K' x K' and gives the same functions as the earlier construction.
+
 ## Speed notes
 
 A profile on the pilot sizes showed that SpherIDiff was limited by memory traffic of element-wise operations on its full-resolution tensors, not by arithmetic. Two changes that keep the mathematics the same were applied: the RMS normalisation uses the fused `torch.nn.functional.rms_norm` when it exists (with the original formula as a fallback), and the five-frame temporal attention is written as two small `einsum` products with a rotary embedding on the frame axis. In a local test they gave about 1.95 times the training speed with the same outputs (relative difference 8e-7 in fp32, and no added error in fp16 beyond the fp16 error of the original). The spectral stage still runs in fp32. Running it in fp16 would be faster still, with a small extra error, and was not adopted.

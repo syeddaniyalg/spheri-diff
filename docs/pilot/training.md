@@ -109,6 +109,15 @@ The pre-trained models are adapted to a regional patch at 1.5 degrees (16 x 16 p
 - **Zero-shot.** Before its first step, the fine-tuning job saves the transferred weights in a run folder ending in `_zeroshot`, which the final evaluation reads like any other run.
 - **Placement.** The first GPU runs the WIND jobs and the second GPU the SpherIDiff jobs. Each queue fine-tunes its models and then evaluates them.
 
+## Pooled SpherIDiff experiment
+
+The four pooled variants (see [models.md](models.md#pooled-spheridiff)) are pre-trained and fine-tuned in one Kaggle session by `notebooks/kaggle_pilot_pooled.ipynb`, with its own runs folder and its own archive, `pooled_results.zip`.
+
+- **Pre-training.** Each variant is trained on the global data for 25,000 steps (`pilot_pooled<levels>_<weight>`, train `pilot_25k`) and evaluated under `final_v1`.
+- **Fine-tuning.** Each variant is then fine-tuned for 5,000 steps on the regional patch (`finetune_pooled<levels>_<weight>`), starting from its own EMA weights in the same runs folder, and evaluated on the patch zero-shot and after fine-tuning. The adaptation is the one of the earlier fine-tuning: a frozen restricted weight and a trainable update in each block, and fine-tuned pointwise weights.
+- **Placement.** The first GPU runs the two dense variants and the second GPU the two variants with r = 32. Each queue completes one variant (pre-training, global evaluation, fine-tuning, two regional evaluations) before it starts the next. Each job is given its own data cache, global or regional.
+- **Tables.** The global table is `final_evaluation_summary.txt` and the regional table is `regional/final_evaluation_summary.txt`.
+
 ## Cooldown test of the step budget
 
 Under the cosine schedule the late part of a learning curve flattens partly because the learning rate decays, so the curve alone does not show how many steps a run needed. The cooldown test measures this from the milestone checkpoints of the main pilot, without training the runs again.

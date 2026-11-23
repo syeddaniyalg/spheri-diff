@@ -27,7 +27,7 @@ class RunContext:
 
 def job_command(job, context, now):
     command = [sys.executable, str(context.code_root / "scripts" / job.script), *job.arguments]
-    command += ["--runs-root", str(context.runs_root), "--cache-root", str(context.cache_root)]
+    command += ["--runs-root", str(context.runs_root), "--cache-root", str(job.cache_root or context.cache_root)]
     if job.budgeted and context.deadline is not None:
         command += ["--max-seconds", str(int(context.deadline - now - context.grace_seconds))]
     return command

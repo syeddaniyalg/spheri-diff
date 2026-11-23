@@ -31,6 +31,7 @@ VARIANTS_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_variants.ipynb"
 COOLDOWN_NOTEBOOK = PROJECT_ROOT / "notebooks" / "colab_pilot_cooldown.ipynb"
 L31_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_l31.ipynb"
 FINETUNE_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_finetune.ipynb"
+POOLED_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_pooled.ipynb"
 RANK_NOTEBOOK = PROJECT_ROOT / "notebooks" / "colab_pilot_l31_rank128.ipynb"
 NOTEBOOKS = [
     NOTEBOOK,
@@ -194,7 +195,8 @@ def test_band_limit_31_notebook_trains_one_run_per_gpu_at_a_time():
 def test_finetune_notebook_keeps_wind_and_spheridiff_on_separate_gpus():
     source = notebook_source(FINETUNE_NOTEBOOK)
     for path in (CONFIG_ROOT / "experiments").glob("finetune_*.yaml"):
-        assert f'"{path.stem}"' in source
+        if not path.stem.startswith("finetune_pooled"):
+            assert f'"{path.stem}"' in source
     assert "PLACEMENT = [(0, queue(WIND_EXPERIMENTS)), (1, queue(SPHERIDIFF_EXPERIMENTS))]" in source
     assert "finetune_job(name, PRETRAINED_ROOT)" in source and "ZERO_SHOT_SUFFIX" in source
     assert "finetune_results.zip" in source and "final_names=ZERO_SHOT_NAMES + RUN_NAMES" in source
@@ -214,6 +216,19 @@ def test_rank_ablation_notebook_runs_on_colab_with_the_kaggle_data():
     second = yaml.safe_load((CONFIG_ROOT / "model" / "spheridiff_l31_b4_r128.yaml").read_text())
     assert second["architecture"].pop("rank") == 128 and first["architecture"].pop("rank") == 32
     assert first == second
+
+
+def test_pooled_notebook_runs_every_variant_from_pretraining_to_fine_tuning():
+    source = notebook_source(POOLED_NOTEBOOK)
+    assert 'FIRST_GPU_VARIANTS = ["pooled3_dense", "pooled4_dense"]' in source
+    assert 'SECOND_GPU_VARIANTS = ["pooled3_rank32", "pooled4_rank32"]' in source
+    for name in ("pooled3_dense", "pooled3_rank32", "pooled4_dense", "pooled4_rank32"):
+        for prefix in ("pilot", "finetune"):
+            assert (CONFIG_ROOT / "experiments" / f"{prefix}_{name}.yaml").exists()
+    assert "PLACEMENT = [(0, queue(FIRST_GPU_VARIANTS)), (1, queue(SECOND_GPU_VARIANTS))]" in source
+    assert "finetune_job(finetuning, RUNS_ROOT, REGIONAL_CACHE)" in source
+    assert "era5-pilot-6degrees" in source and "era5-1-5-southasia" in source
+    assert "pooled_results.zip" in source and "DEADLINE" not in source
 
 
 def test_time_matched_config_changes_only_the_length():

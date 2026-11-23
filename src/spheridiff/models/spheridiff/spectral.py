@@ -7,7 +7,11 @@ class SpectralStage(nn.Module):
         super().__init__()
         self.transform = transform
 
+    half_precision = False
+
     def forward(self, values):
+        if self.half_precision:
+            return self.transform.synthesise_points(self.mix(self.transform.analyse_points(values)))
         with torch.autocast(device_type=values.device.type, enabled=False):
             coefficients = self.transform.analyse_points(values.float())
             return self.transform.synthesise_points(self.mix(coefficients))
@@ -59,7 +63,7 @@ class SlepianMixing(SpectralStage):
 
 
 def build_mixing(transform, rank=None):
-    if hasattr(transform, "basis"):
+    if getattr(transform, "regional", False):
         return SlepianMixing(transform)
     if rank is None:
         return SpectralMixing(transform)

@@ -82,7 +82,9 @@ class SphericalTransform(MatrixTransform):
 def build_transform(grid, settings=None):
     settings = settings or {}
     if settings.get("kind") == "slepian":
-        from .slepian import SlepianTransform
+        from .slepian import KernelSlepianTransform, SlepianTransform
 
+        if settings.get("method") == "kernel":
+            return KernelSlepianTransform(grid, settings["bandlimit"])
         return SlepianTransform(grid, settings["bandlimit"])
     return SphericalTransform(grid, settings.get("bandlimit"), settings.get("analysis", "quadrature"))

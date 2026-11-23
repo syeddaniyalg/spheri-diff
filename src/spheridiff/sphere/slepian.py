@@ -1,4 +1,5 @@
 import math
+from functools import lru_cache
 
 import numpy as np
 import torch
@@ -75,4 +76,71 @@ class SlepianTransform(MatrixTransform):
         functions = real_harmonics(grid.latitudes, grid.longitudes, degrees) @ basis
         super().__init__(least_squares(functions, patch_weights(grid)), functions.T, grid, self.area / count)
         self.degrees = degrees
+        self.regional = True
         self.register_buffer("basis", torch.tensor(basis, dtype=torch.float32), persistent=False)
+
+    def harmonic_basis(self, count):
+        return self.basis[:count]
+
+
+def unit_vectors(latitudes, longitudes):
+    phi, lam = np.radians(latitudes), np.radians(longitudes)
+    return np.stack([np.cos(phi) * np.cos(lam), np.cos(phi) * np.sin(lam), np.sin(phi)], axis=-1)
+
+
+def grid_vectors(latitudes, longitudes):
+    lat, lon = np.meshgrid(latitudes, longitudes, indexing="ij")
+    return unit_vectors(lat.ravel(), lon.ravel())
+
+
+def reproducing_kernel(first, second, degrees):
+    cosines = np.clip(first @ second.T, -1.0, 1.0)
+    previous, current = np.ones_like(cosines), cosines.copy()
+    total = (previous + 3.0 * current) / (4.0 * math.pi)
+    for degree in range(2, degrees):
+        previous, current = current, ((2 * degree - 1) * cosines * current - (degree - 1) * previous) / degree
+        total += current * ((2 * degree + 1) / (4.0 * math.pi))
+    return total
+
+
+def box_quadrature(latitude_bounds, longitude_bounds, points):
+    latitudes, latitude_weights = gauss_nodes(latitude_bounds, points)
+    longitudes, longitude_weights = gauss_nodes(longitude_bounds, points)
+    area = (np.cos(np.radians(latitudes)) * latitude_weights)[:, None] * longitude_weights[None, :]
+    return latitudes, longitudes, area.ravel()
+
+
+@lru_cache(maxsize=16)
+def kernel_slepian(latitude_bounds, longitude_bounds, degrees, count, points):
+    latitudes, longitudes, area = box_quadrature(latitude_bounds, longitude_bounds, points)
+    nodes = grid_vectors(latitudes, longitudes)
+    root = np.sqrt(area)
+    gram = root[:, None] * reproducing_kernel(nodes, nodes, degrees) * root[None, :]
+    eigenvalues, vectors = np.linalg.eigh(gram)
+    order = np.argsort(eigenvalues)[::-1][:count]
+    weights = root[:, None] * vectors[:, order] / np.sqrt(eigenvalues[order])
+    return eigenvalues[order], latitudes, longitudes, nodes, weights
+
+
+class KernelSlepianTransform(MatrixTransform):
+    def __init__(self, grid, degrees, bounds=None, points=QUADRATURE_POINTS):
+        latitude_bounds, longitude_bounds = bounds or (cell_bounds(grid.latitudes), cell_bounds(grid.longitudes))
+        self.area = region_area(latitude_bounds, longitude_bounds)
+        count = shannon_number(self.area, degrees)
+        if count > grid.height * grid.width:
+            raise ValueError(f"{count} Slepian functions need more points than the grid has")
+        self.bandlimit = degrees
+        key = (tuple(map(float, latitude_bounds)), tuple(map(float, longitude_bounds)), degrees, count, points)
+        self.eigenvalues, self.quadrature_latitudes, self.quadrature_longitudes, self.nodes, self.weights = kernel_slepian(*key)
+        functions = self.functions_at(grid.latitudes, grid.longitudes)
+        super().__init__(least_squares(functions, patch_weights(grid)), functions.T, grid, self.area / count)
+        self.degrees = degrees
+        self.regional = True
+
+    def functions_at(self, latitudes, longitudes):
+        return reproducing_kernel(grid_vectors(latitudes, longitudes), self.nodes, self.bandlimit) @ self.weights
+
+    def harmonic_basis(self, count):
+        degrees = math.isqrt(count)
+        harmonics = real_harmonics(self.quadrature_latitudes, self.quadrature_longitudes, degrees)
+        return torch.tensor(harmonics.T @ self.weights, dtype=torch.float32)

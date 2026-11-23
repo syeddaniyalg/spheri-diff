@@ -1,0 +1,8 @@
+name: finetune_pooled4_dense
+data: era5_1p5deg_south_asia
+model: spheridiff_pooled4_dense_regional
+train: finetune
+evaluation: pilot
+seed: 42
+pretrained: pilot_pooled4_dense/ema_weights.pt
+adaptation: delta_and_pointwise
