@@ -32,7 +32,7 @@ def restrict_per_channel(weight, kappa, basis):
     top = basis[:coefficients].double()
     degrees = torch.arange(coefficients).float().sqrt().floor().long()
     shared = top.mT @ weight @ top
-    filters = kappa.double()[degrees]
+    filters = kappa.double() if kappa.shape[0] == coefficients else kappa.double()[degrees]
     own = torch.einsum("ki,kc,kj->cij", top, filters, top)
     return shared[None] + own
 

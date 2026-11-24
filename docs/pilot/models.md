@@ -86,6 +86,7 @@ Three further options of `spheridiff_pooled` each change one part of the model. 
 
 - **`degree_filters`.** Every spectral stage gains one value per degree and channel, kappa_c(l), so that channel c is mixed with W + diag(kappa_c(l)). The values start at zero. On the regional patch, each channel has its own frozen restricted matrix U_M^T (W + diag(kappa_c)) U_M, and the trainable update stays shared over the channels.
 - **`noise_conditioning`.** The network receives the noise level of every frame. An embedding of the level is added to the features after the uplift, with a zero-initialised output layer. The training loss and the DDIM sampler pass the levels to the model before each call, with level zero for clean context frames. This departs from WIND, which infers the noise level from the data.
+- **`coefficient_filters`.** As `degree_filters`, but with one value per coefficient and channel, kappa_c(l, m), so that the filter also depends on the order m. It stays symmetric under rotations about the polar axis. The two filter options exclude each other.
 - **`space_time_attention`.** At the coarsest level, the temporal attention at each point is replaced by one attention over all points and frames of that level, with the same weights and the rotary embedding over the frame index.
 
 | Name | Option | Parameters |
@@ -93,6 +94,7 @@ Three further options of `spheridiff_pooled` each change one part of the model. 
 | `spheridiff_pooled3_filters` | `degree_filters` | 2,669,886 |
 | `spheridiff_pooled3_noise` | `noise_conditioning` | 2,662,526 |
 | `spheridiff_pooled3_spacetime` | `space_time_attention` | 2,658,238 |
+| `spheridiff_pooled3_noise_coeff` | `noise_conditioning` and `coefficient_filters` | 2,925,310 |
 
 ## Speed notes
 

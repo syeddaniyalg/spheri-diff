@@ -122,6 +122,8 @@ The four pooled variants (see [models.md](models.md#pooled-spheridiff)) are pre-
 
 The three options of the pooled model (see [models.md](models.md#options-of-the-pooled-model)) are tested on `spheridiff_pooled3_dense` by `notebooks/kaggle_pilot_pooled_fixes.ipynb`, with the same pipeline as the pooled experiment: 25,000 steps of pre-training, the global evaluation, 5,000 steps of fine-tuning on the regional patch, and the regional evaluations zero-shot and after fine-tuning. The first GPU runs the variants with degree filters and with space-time attention, and the second GPU the variant with noise conditioning. The unchanged model from the pooled experiment is the reference. The results are packed into `pooled_fixes_results.zip`.
 
+The variant that combines noise conditioning with coefficient filters (`pooled3_noise_coeff`) is run on its own by `notebooks/kaggle_pilot_pooled_noise_coeff.ipynb`, with the same pipeline on the first GPU, and its results are packed into `pooled_noise_coeff_results.zip`.
+
 ## Cooldown test of the step budget
 
 Under the cosine schedule the late part of a learning curve flattens partly because the learning rate decays, so the curve alone does not show how many steps a run needed. The cooldown test measures this from the milestone checkpoints of the main pilot, without training the runs again.

@@ -76,6 +76,15 @@ class DegreeFilteredMixing(SpectralMixing):
         return super().mix(coefficients) + self.kappa[self.degrees_of] * coefficients
 
 
+class CoefficientFilteredMixing(SpectralMixing):
+    def __init__(self, transform, width):
+        super().__init__(transform)
+        self.kappa = nn.Parameter(torch.zeros(transform.coefficients, width))
+
+    def mix(self, coefficients):
+        return super().mix(coefficients) + self.kappa * coefficients
+
+
 class SlepianChannelMixing(SpectralStage):
     def __init__(self, transform, width):
         super().__init__(transform)
@@ -88,12 +97,14 @@ class SlepianChannelMixing(SpectralStage):
         return own + torch.matmul(self.delta.mT, coefficients)
 
 
-def build_mixing(transform, rank=None, filter_width=None):
+def build_mixing(transform, rank=None, filter_width=None, per_coefficient=False):
     regional = getattr(transform, "regional", False)
     if regional and filter_width is not None:
         return SlepianChannelMixing(transform, filter_width)
     if regional:
         return SlepianMixing(transform)
+    if filter_width is not None and per_coefficient:
+        return CoefficientFilteredMixing(transform, filter_width)
     if filter_width is not None:
         return DegreeFilteredMixing(transform, filter_width)
     if rank is None:

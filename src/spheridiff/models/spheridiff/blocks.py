@@ -56,10 +56,13 @@ class SpaceTimeAttention(TemporalAttention):
 
 
 class SpherIDiffBlock(nn.Module):
-    def __init__(self, in_width, out_width, heads, frames, transform, rank=None, degree_filters=False):
+    def __init__(
+        self, in_width, out_width, heads, frames, transform, rank=None, degree_filters=False, coefficient_filters=False
+    ):
         super().__init__()
         self.spectral_norm = RMSNorm(in_width)
-        self.spectral = build_mixing(transform, rank, in_width if degree_filters else None)
+        filter_width = in_width if degree_filters or coefficient_filters else None
+        self.spectral = build_mixing(transform, rank, filter_width, coefficient_filters)
         self.mlp_norm = RMSNorm(in_width)
         self.mlp = ChannelMlp(in_width, out_width)
         self.shortcut = (

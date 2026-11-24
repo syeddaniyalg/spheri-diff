@@ -19,6 +19,7 @@ class PooledConfig:
     rank: int = None
     spectral_precision: str = "fp32"
     degree_filters: bool = False
+    coefficient_filters: bool = False
     noise_conditioning: bool = False
     space_time_attention: bool = False
 
@@ -29,6 +30,8 @@ class PooledConfig:
     def __post_init__(self):
         if self.levels < 2:
             raise ValueError("a pooled model needs at least two levels")
+        if self.degree_filters and self.coefficient_filters:
+            raise ValueError("choose either degree filters or coefficient filters, not both")
         if self.spectral_precision not in SPECTRAL_PRECISIONS:
             raise ValueError(f"unknown spectral precision '{self.spectral_precision}', choose from {SPECTRAL_PRECISIONS}")
         for width in self.widths:
@@ -44,7 +47,14 @@ class PooledSpherIDiff(nn.Module):
 
         def block(level, incoming, outgoing):
             return SpherIDiffBlock(
-                incoming, outgoing, config.heads, frames, transforms[level], config.rank, config.degree_filters
+                incoming,
+                outgoing,
+                config.heads,
+                frames,
+                transforms[level],
+                config.rank,
+                config.degree_filters,
+                config.coefficient_filters,
             )
 
         deepest = config.levels - 1

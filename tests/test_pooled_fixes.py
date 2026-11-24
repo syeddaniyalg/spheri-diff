@@ -139,3 +139,40 @@ def test_every_variant_transfers_to_the_patch(option):
     regional.set_frame_levels(torch.rand(1, 5))
     output = regional(torch.randn(1, 5, 6, 8, 16), torch.randn(1, 5, 3, 8, 16))
     assert torch.isfinite(output).all()
+
+
+def test_the_combined_variant_has_noise_conditioning_and_coefficient_filters():
+    spec = load_model_spec("spheridiff_pooled3_noise_coeff")
+    assert spec.architecture["coefficient_filters"] and spec.architecture["noise_conditioning"]
+    model = build_model(spec.name, spec.architecture, ModelContext(25, 10, 5, make_grid(32, 64), spec.sphere))
+    assert count_parameters(model) == 2925310
+    assert model.level_embedding is not None
+    assert [tuple(block.spectral.kappa.shape) for block in [*model.down, model.middle, *model.up]] == [
+        (961, 64), (225, 64), (49, 128), (961, 128), (225, 256)
+    ]
+    finetuning = load_experiment("finetune_pooled3_noise_coeff")
+    assert finetuning.pretrained == "pilot_pooled3_noise_coeff/ema_weights.pt"
+    assert load_model_spec(finetuning.model).architecture == spec.architecture
+
+
+def test_coefficient_filters_add_one_filter_per_channel_and_coefficient():
+    model = randomised(small_model("coefficient_filters"))
+    stage = model.down[0].spectral
+    assert stage.kappa.shape == (stage.transform.coefficients, 8)
+    coefficients = torch.randn(2, stage.transform.coefficients, 8)
+    expected = stage.weight.mT @ coefficients + stage.kappa * coefficients
+    assert torch.allclose(stage.mix(coefficients), expected, atol=1e-5)
+    with pytest.raises(ValueError):
+        build_model("spheridiff_pooled", {**BASE, "degree_filters": True, "coefficient_filters": True}, ModelContext(6, 3, 5, make_grid(8, 16), SMALL_GLOBAL))
+
+
+def test_coefficient_filters_are_restricted_per_channel_on_the_patch():
+    source = randomised(small_model("coefficient_filters"))
+    weights = {name: parameter.detach().clone() for name, parameter in source.named_parameters()}
+    regional = transfer_weights(small_model("coefficient_filters", SMALL_PATCH, SMALL_REGIONAL), weights)
+    stage = regional.down[0].spectral
+    weight, kappa = weights["down.0.spectral.weight"].double(), weights["down.0.spectral.kappa"].double()
+    basis = stage.transform.harmonic_basis(weight.shape[0])
+    for channel in (0, kappa.shape[1] - 1):
+        expected = restrict(weight + torch.diag(kappa[:, channel]), basis)
+        assert torch.allclose(stage.restricted[channel].double(), expected, atol=1e-4)
