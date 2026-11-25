@@ -96,6 +96,20 @@ Three further options of `spheridiff_pooled` each change one part of the model. 
 | `spheridiff_pooled3_spacetime` | `space_time_attention` | 2,658,238 |
 | `spheridiff_pooled3_noise_coeff` | `noise_conditioning` and `coefficient_filters` | 2,925,310 |
 
+### Local processing
+
+Two further models add local processing to the pooled SpherIDiff. Both keep the spectral stages, the spectral pooling and the noise conditioning, and every added part has a zero-initialised output.
+
+- **Spherical convolution (`spherical_convolution`).** A residual stage at the end of the two blocks of the finest level applies a discrete-continuous convolution on the sphere (`src/spheridiff/models/spheridiff/local.py`). Its four basis functions depend on the geodesic distance r and the direction phi from each point: a central hat max(0, 1 - r/s), a ring hat centred at s, and the ring hat multiplied by cos(phi) and sin(phi), with s = 180/31 degrees, one cell of the global grid. Each basis function is divided by its continuous integral and each input point is weighted by its area, so the operator is the same on the global grid and on the regional patch; on a constant field the central function returns about 1 on both. It is computed as a sparse matrix product.
+- **Hybrid (`spheridiff_hybrid`, `src/spheridiff/models/spheridiff/hybrid.py`).** A U-ViT in the style of WIND with a spectral stage at every level. The two finer levels use the residual convolution blocks of the WIND implementation and the coarsest level its Transformer block, with attention over all points and frames and conditioning per token. The noise level of every frame conditions the normalisation of these blocks. The spectral weight of a level is shared by the blocks on the way down and up, and width changes are linear maps applied on the coarser grid.
+
+| Name | Parameters | Share in spectral weights | Share in convolution and Transformer blocks |
+|---|---|---|---|
+| `spheridiff_pooled3_disco` | 2,958,206 | about 63% | about 1% (the spherical convolutions) |
+| `spheridiff_hybrid` | 2,685,308 | about 37% | about 60% |
+
+In a timing test on the RTX 4050 at batch size 16, a training step took 0.153 s for the pooled model with noise conditioning and coefficient filters, 0.195 s with the spherical convolution and 0.125 s for the hybrid.
+
 ## Speed notes
 
 A profile on the pilot sizes showed that SpherIDiff was limited by memory traffic of element-wise operations on its full-resolution tensors, not by arithmetic. Two changes that keep the mathematics the same were applied: the RMS normalisation uses the fused `torch.nn.functional.rms_norm` when it exists (with the original formula as a fallback), and the five-frame temporal attention is written as two small `einsum` products with a rotary embedding on the frame axis. In a local test they gave about 1.95 times the training speed with the same outputs (relative difference 8e-7 in fp32, and no added error in fp16 beyond the fp16 error of the original). The spectral stage still runs in fp32. Running it in fp16 would be faster still, with a small extra error, and was not adopted.

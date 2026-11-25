@@ -1,8 +1,9 @@
 from .spheridiff.build import build_spheridiff
+from .spheridiff.hybrid import build_hybrid
 from .spheridiff.pooled import build_pooled
 from .wind.build import build_wind
 
-BUILDERS = {"wind": build_wind, "spheridiff": build_spheridiff, "spheridiff_pooled": build_pooled}
+BUILDERS = {"wind": build_wind, "spheridiff": build_spheridiff, "spheridiff_pooled": build_pooled, "spheridiff_hybrid": build_hybrid}
 
 
 def build_model(name, architecture, context):

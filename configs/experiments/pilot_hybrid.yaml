@@ -1,0 +1,6 @@
+name: pilot_hybrid
+data: era5_5p6deg
+model: spheridiff_hybrid
+train: pilot_25k
+evaluation: pilot
+seed: 42

@@ -34,6 +34,7 @@ FINETUNE_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_finetune.ipynb"
 POOLED_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_pooled.ipynb"
 POOLED_FIXES_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_pooled_fixes.ipynb"
 NOISE_COEFF_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_pooled_noise_coeff.ipynb"
+LOCAL_HYBRID_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_local_hybrid.ipynb"
 RANK_NOTEBOOK = PROJECT_ROOT / "notebooks" / "colab_pilot_l31_rank128.ipynb"
 NOTEBOOKS = [
     NOTEBOOK,
@@ -197,7 +198,7 @@ def test_band_limit_31_notebook_trains_one_run_per_gpu_at_a_time():
 def test_finetune_notebook_keeps_wind_and_spheridiff_on_separate_gpus():
     source = notebook_source(FINETUNE_NOTEBOOK)
     for path in (CONFIG_ROOT / "experiments").glob("finetune_*.yaml"):
-        if not path.stem.startswith("finetune_pooled"):
+        if not path.stem.startswith(("finetune_pooled", "finetune_hybrid")):
             assert f'"{path.stem}"' in source
     assert "PLACEMENT = [(0, queue(WIND_EXPERIMENTS)), (1, queue(SPHERIDIFF_EXPERIMENTS))]" in source
     assert "finetune_job(name, PRETRAINED_ROOT)" in source and "ZERO_SHOT_SUFFIX" in source
@@ -252,6 +253,16 @@ def test_noise_coeff_notebook_runs_the_combined_variant_on_one_gpu():
         assert (CONFIG_ROOT / "experiments" / f"{prefix}_pooled3_noise_coeff.yaml").exists()
     assert "finetune_job(finetuning, RUNS_ROOT, REGIONAL_CACHE)" in source
     assert "pooled_noise_coeff_results.zip" in source and "DEADLINE" not in source
+
+
+def test_local_hybrid_notebook_runs_one_variant_per_gpu():
+    source = notebook_source(LOCAL_HYBRID_NOTEBOOK)
+    assert 'FIRST_GPU_VARIANTS = ["pooled3_disco"]' in source and 'SECOND_GPU_VARIANTS = ["hybrid"]' in source
+    assert "PLACEMENT = [(0, queue(FIRST_GPU_VARIANTS)), (1, queue(SECOND_GPU_VARIANTS))]" in source
+    for variant in ("pooled3_disco", "hybrid"):
+        for prefix in ("pilot", "finetune"):
+            assert (CONFIG_ROOT / "experiments" / f"{prefix}_{variant}.yaml").exists()
+    assert "local_hybrid_results.zip" in source and "DEADLINE" not in source
 
 
 def test_time_matched_config_changes_only_the_length():

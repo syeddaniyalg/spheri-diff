@@ -70,9 +70,13 @@ class SpherIDiffBlock(nn.Module):
         )
         self.attention_norm = RMSNorm(out_width)
         self.attention = TemporalAttention(out_width, heads, frames)
+        self.local = None
 
     def forward(self, values):
         mixed = self.spectral(self.spectral_norm(values))
         values = values + mixed.to(values.dtype)
         values = self.shortcut(values) + self.mlp(self.mlp_norm(values))
-        return values + self.attention(self.attention_norm(values))
+        values = values + self.attention(self.attention_norm(values))
+        if self.local is None:
+            return values
+        return values + self.local(values).to(values.dtype)

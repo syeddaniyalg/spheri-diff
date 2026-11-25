@@ -7,6 +7,7 @@ from spheridiff.models.layers.init import zeroed
 
 from .blocks import SpaceTimeAttention, SpherIDiffBlock
 from .levels import LevelPlan
+from .local import LocalStage
 
 SPECTRAL_PRECISIONS = ("fp32", "fp16")
 
@@ -22,6 +23,7 @@ class PooledConfig:
     coefficient_filters: bool = False
     noise_conditioning: bool = False
     space_time_attention: bool = False
+    spherical_convolution: bool = False
 
     @property
     def widths(self):
@@ -65,6 +67,10 @@ class PooledSpherIDiff(nn.Module):
         self.downlift = zeroed(nn.Linear(widths[0], context.channels))
         if config.space_time_attention:
             self.middle.attention = SpaceTimeAttention(widths[deepest], config.heads, frames)
+        if config.spherical_convolution:
+            regional = context.sphere.get("kind") == "slepian"
+            for top in (self.down[0], self.up[0]):
+                top.local = LocalStage(context.grid, widths[0], regional)
         self.level_embedding = None
         if config.noise_conditioning:
             self.level_embedding = nn.Sequential(nn.Linear(1, widths[0]), nn.SiLU(), zeroed(nn.Linear(widths[0], widths[0])))

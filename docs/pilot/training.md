@@ -124,6 +124,8 @@ The three options of the pooled model (see [models.md](models.md#options-of-the-
 
 The variant that combines noise conditioning with coefficient filters (`pooled3_noise_coeff`) is run on its own by `notebooks/kaggle_pilot_pooled_noise_coeff.ipynb`, with the same pipeline on the first GPU, and its results are packed into `pooled_noise_coeff_results.zip`.
 
+The two models with local processing (see [models.md](models.md#local-processing)) are run by `notebooks/kaggle_pilot_local_hybrid.ipynb`, with the same pipeline: the pooled model with the spherical convolution (`pooled3_disco`) on the first GPU and the hybrid U-ViT (`hybrid`) on the second. Their results are packed into `local_hybrid_results.zip`.
+
 ## Cooldown test of the step budget
 
 Under the cosine schedule the late part of a learning curve flattens partly because the learning rate decays, so the curve alone does not show how many steps a run needed. The cooldown test measures this from the milestone checkpoints of the main pilot, without training the runs again.

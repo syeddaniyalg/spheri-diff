@@ -1,0 +1,19 @@
+name: spheridiff_hybrid
+
+sphere:
+  bandlimit: 31
+  analysis: least_squares
+
+diffusion:
+  noise: spectral
+  projection: band_limit
+
+architecture:
+  base_width: 64
+  levels: 3
+  heads: 4
+  embedding_dim: 64
+  norm_groups: 32
+  transformer_blocks: 1
+  degree_filters: true
+  spectral_precision: fp16
