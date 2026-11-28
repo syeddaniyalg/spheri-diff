@@ -1,0 +1,108 @@
+{
+  "experiment": {
+    "name": "finetune_spheridiff_b4_l16",
+    "data": "era5_1p5deg_south_asia",
+    "model": "spheridiff_regional_b4",
+    "train": "finetune",
+    "evaluation": "pilot",
+    "seed": 42,
+    "pilot_train": "pilot",
+    "pretrained": "pilot/pilot_spheridiff_b4/milestone_022500.pt",
+    "adaptation": "delta_and_pointwise"
+  },
+  "train": {
+    "steps": 5000,
+    "batch_size": 16,
+    "learning_rate": 0.0003,
+    "min_learning_rate": 1e-06,
+    "warmup_fraction": 0.05,
+    "weight_decay": 0.0,
+    "gradient_clip": 0.8,
+    "ema_decay": 0.999,
+    "precision": "fp16",
+    "evaluate_every": 250,
+    "checkpoint_every": 250,
+    "source_levels": [
+      50,
+      100,
+      150,
+      200,
+      250,
+      300,
+      400,
+      500,
+      600,
+      700,
+      850,
+      925,
+      1000
+    ],
+    "evaluation": {
+      "windows": 32,
+      "members": 3,
+      "ddim_steps": 15,
+      "batch_size": 16,
+      "levels": [
+        0.1,
+        0.3,
+        0.5,
+        0.7,
+        0.9
+      ],
+      "fields": [
+        "500_geopotential",
+        "850_temperature",
+        "2m_temperature",
+        "10m_u_component_of_wind",
+        "mean_sea_level_pressure",
+        "700_specific_humidity"
+      ],
+      "seed": 42
+    },
+    "train_split": "train",
+    "fixed_windows": 0,
+    "max_seconds": 0.0,
+    "milestones": [],
+    "cooldown_start": 0,
+    "cooldown_peak": 0.0
+  },
+  "model": {
+    "name": "spheridiff",
+    "noise": "spectral",
+    "projection": "band_limit",
+    "architecture": {
+      "widths": [
+        128,
+        256,
+        256,
+        256,
+        128
+      ],
+      "heads": 4
+    },
+    "sphere": {
+      "kind": "slepian",
+      "bandlimit": 61
+    }
+  },
+  "parameters": 1347517,
+  "data": {
+    "cache_root": "/kaggle/input/datasets/thesyeddaniyal/era5-1-5-southasia/era5_1p5deg_south_asia",
+    "splits": {
+      "train": [
+        2017,
+        2019
+      ],
+      "val": [
+        2020,
+        2020
+      ],
+      "test": [
+        2021,
+        2021
+      ]
+    }
+  },
+  "torch": "2.11.0+cu130",
+  "device": "Tesla T4"
+}

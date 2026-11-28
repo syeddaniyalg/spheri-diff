@@ -1,0 +1,62 @@
+[
+  {
+    "job": "pilot_pooled3_disco",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 5630.028663158417
+  },
+  {
+    "job": "final_pilot_pooled3_disco",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 2132.321826696396
+  },
+  {
+    "job": "finetune_pooled3_disco",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 319.5640001296997
+  },
+  {
+    "job": "final_finetune_pooled3_disco_zeroshot",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 538.6242125034332
+  },
+  {
+    "job": "final_finetune_pooled3_disco",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 530.393538236618
+  },
+  {
+    "job": "pilot_hybrid",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 3469.831873893738
+  },
+  {
+    "job": "final_pilot_hybrid",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 1199.3542137145996
+  },
+  {
+    "job": "finetune_hybrid",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 294.9613502025604
+  },
+  {
+    "job": "final_finetune_hybrid_zeroshot",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 429.17557406425476
+  },
+  {
+    "job": "final_finetune_hybrid",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 446.0180118083954
+  }
+]

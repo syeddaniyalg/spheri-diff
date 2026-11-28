@@ -1,0 +1,14 @@
+{
+  "experiment": {
+    "name": "finetune_spheridiff_l31_b4_delta_only",
+    "data": "era5_1p5deg_south_asia",
+    "model": "spheridiff_regional_b4",
+    "train": "finetune",
+    "evaluation": "pilot",
+    "seed": 42,
+    "pilot_train": "pilot",
+    "pretrained": "pilot_l31/pilot_spheridiff_l31_b4/ema_weights.pt",
+    "adaptation": "delta_only"
+  },
+  "pretrained": "/kaggle/input/datasets/thesyeddaniyal/spheridiff-checkpoints-finetune/pilot_l31/pilot_spheridiff_l31_b4/ema_weights.pt"
+}

@@ -24,14 +24,28 @@ class PooledConfig:
     noise_conditioning: bool = False
     space_time_attention: bool = False
     spherical_convolution: bool = False
+    channel_knots: int = None
+    pretrained_degrees: tuple = None
 
     @property
     def widths(self):
         return [self.base_width * 2**level for level in range(self.levels)]
 
+    def pretrained_degree(self, level):
+        return None if self.pretrained_degrees is None else self.pretrained_degrees[level]
+
+    def check_channel_mixing(self):
+        if self.channel_knots is None:
+            return
+        if self.rank is not None or self.degree_filters or self.coefficient_filters:
+            raise ValueError("channel mixing replaces the mode-mixing weight, its rank and its filters")
+        if self.pretrained_degrees is not None and len(self.pretrained_degrees) != self.levels:
+            raise ValueError("give one pretrained band limit per level")
+
     def __post_init__(self):
         if self.levels < 2:
             raise ValueError("a pooled model needs at least two levels")
+        self.check_channel_mixing()
         if self.degree_filters and self.coefficient_filters:
             raise ValueError("choose either degree filters or coefficient filters, not both")
         if self.spectral_precision not in SPECTRAL_PRECISIONS:
@@ -57,6 +71,8 @@ class PooledSpherIDiff(nn.Module):
                 config.rank,
                 config.degree_filters,
                 config.coefficient_filters,
+                config.channel_knots,
+                config.pretrained_degree(level),
             )
 
         deepest = config.levels - 1

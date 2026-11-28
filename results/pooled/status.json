@@ -1,0 +1,122 @@
+[
+  {
+    "job": "pilot_pooled3_dense",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 4950.712950468063
+  },
+  {
+    "job": "final_pilot_pooled3_dense",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 1944.5571293830872
+  },
+  {
+    "job": "finetune_pooled3_dense",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 326.3905608654022
+  },
+  {
+    "job": "final_finetune_pooled3_dense_zeroshot",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 495.90902733802795
+  },
+  {
+    "job": "final_finetune_pooled3_dense",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 473.14805912971497
+  },
+  {
+    "job": "pilot_pooled4_dense",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 3412.080826997757
+  },
+  {
+    "job": "final_pilot_pooled4_dense",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 1251.6445853710175
+  },
+  {
+    "job": "finetune_pooled4_dense",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 403.09246587753296
+  },
+  {
+    "job": "final_finetune_pooled4_dense_zeroshot",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 658.4779136180878
+  },
+  {
+    "job": "final_finetune_pooled4_dense",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 593.8834068775177
+  },
+  {
+    "job": "pilot_pooled3_rank32",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 4849.5276708602905
+  },
+  {
+    "job": "final_pilot_pooled3_rank32",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 1746.2093527317047
+  },
+  {
+    "job": "finetune_pooled3_rank32",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 281.49443340301514
+  },
+  {
+    "job": "final_finetune_pooled3_rank32_zeroshot",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 535.7428865432739
+  },
+  {
+    "job": "final_finetune_pooled3_rank32",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 514.9969696998596
+  },
+  {
+    "job": "pilot_pooled4_rank32",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 3394.111652612686
+  },
+  {
+    "job": "final_pilot_pooled4_rank32",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 1188.1131613254547
+  },
+  {
+    "job": "finetune_pooled4_rank32",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 355.2738769054413
+  },
+  {
+    "job": "final_finetune_pooled4_rank32_zeroshot",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 705.7361571788788
+  },
+  {
+    "job": "final_finetune_pooled4_rank32",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 656.4797132015228
+  }
+]

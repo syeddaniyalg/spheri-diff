@@ -1,0 +1,14 @@
+{
+  "experiment": {
+    "name": "finetune_spheridiff_b4_l16",
+    "data": "era5_1p5deg_south_asia",
+    "model": "spheridiff_regional_b4",
+    "train": "finetune",
+    "evaluation": "pilot",
+    "seed": 42,
+    "pilot_train": "pilot",
+    "pretrained": "pilot/pilot_spheridiff_b4/milestone_022500.pt",
+    "adaptation": "delta_and_pointwise"
+  },
+  "pretrained": "/kaggle/input/datasets/thesyeddaniyal/spheridiff-checkpoints-finetune/pilot/pilot_spheridiff_b4/milestone_022500.pt"
+}

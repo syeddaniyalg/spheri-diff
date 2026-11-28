@@ -110,6 +110,21 @@ Two further models add local processing to the pooled SpherIDiff. Both keep the 
 
 In a timing test on the RTX 4050 at batch size 16, a training step took 0.153 s for the pooled model with noise conditioning and coefficient filters, 0.195 s with the spherical convolution and 0.125 s for the hybrid.
 
+### Per-degree channel mixing
+
+With `channel_knots`, the spectral stage of every block mixes channels instead of coefficients (`DegreeChannelMixing` in `src/spheridiff/models/spheridiff/spectral.py`). For coefficients f of degree l and order m, the output is f_lm A(l) + (m/L) f_l,-m B(l), where A(l) and B(l) are width x width matrices.
+
+- **Isotropic part.** A(l) mixes the channels with a matrix that changes with the degree.
+- **East-west part.** In real harmonics, f_l,-m paired with m is the longitude derivative of the field divided by L, so B(l) acts on the east-west gradient. A test checks this against a finite difference.
+- **Knots.** A(l) and B(l) are interpolated with hat functions from `channel_knots` values spread evenly over the degrees, or one per degree when the band limit is smaller (7 at the coarsest level). All values start at zero.
+- **No mode mixing.** The option excludes the dense weight, its rank and the filters.
+
+On the regional patch (`pretrained_degrees` gives the pre-trained band limit of each level), the operator of each knot is restricted to the Slepian basis of the level, U_M^T D_k U_M for A and U_M^T D_k Z U_M for B, with D_k the knot weights per degree and Z the east-west swap. The pre-trained knots are frozen and are zero above the pre-trained band limit. New knots, as many as the pre-trained ones, cover the degrees from the pre-trained band limit to L' - 1, and the first one sits at the first unseen degree, so every degree is covered by weights that sum to one. The new knots and an M x M update dG start at zero and are trained, together with the pointwise layers, the attention and the spherical convolution.
+
+| Name | Spectral stage | Parameters | Trainable in fine-tuning |
+|---|---|---|---|
+| `spheridiff_pooled3_channel` | channel mixing, 8 knots, with noise conditioning and the spherical convolution | 2,415,897 | 2,481,140 |
+
 ## Speed notes
 
 A profile on the pilot sizes showed that SpherIDiff was limited by memory traffic of element-wise operations on its full-resolution tensors, not by arithmetic. Two changes that keep the mathematics the same were applied: the RMS normalisation uses the fused `torch.nn.functional.rms_norm` when it exists (with the original formula as a fallback), and the five-frame temporal attention is written as two small `einsum` products with a rotary embedding on the frame axis. In a local test they gave about 1.95 times the training speed with the same outputs (relative difference 8e-7 in fp32, and no added error in fp16 beyond the fp16 error of the original). The spectral stage still runs in fp32. Running it in fp16 would be faster still, with a small extra error, and was not adopted.

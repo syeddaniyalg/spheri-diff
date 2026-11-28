@@ -1,0 +1,7 @@
+{
+  "steps": 25000,
+  "train_seconds": 3287.0759852019855,
+  "median_seconds_per_step": 0.1314703570005804,
+  "final_loss": 0.0014412354212254286,
+  "peak_memory_gb": 0.8349776268005371
+}

@@ -1,0 +1,92 @@
+[
+  {
+    "job": "pilot_pooled3_filters",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 4511.721027851105
+  },
+  {
+    "job": "final_pilot_pooled3_filters",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 1783.1149878501892
+  },
+  {
+    "job": "finetune_pooled3_filters",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 299.63473200798035
+  },
+  {
+    "job": "final_finetune_pooled3_filters_zeroshot",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 538.1829471588135
+  },
+  {
+    "job": "final_finetune_pooled3_filters",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 545.4381012916565
+  },
+  {
+    "job": "pilot_pooled3_spacetime",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 4558.9638085365295
+  },
+  {
+    "job": "final_pilot_pooled3_spacetime",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 1923.2932953834534
+  },
+  {
+    "job": "finetune_pooled3_spacetime",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 240.40518712997437
+  },
+  {
+    "job": "final_finetune_pooled3_spacetime_zeroshot",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 440.7006981372833
+  },
+  {
+    "job": "final_finetune_pooled3_spacetime",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 429.58519411087036
+  },
+  {
+    "job": "pilot_pooled3_noise",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 4616.923880338669
+  },
+  {
+    "job": "final_pilot_pooled3_noise",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 1905.333881855011
+  },
+  {
+    "job": "finetune_pooled3_noise",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 323.87718296051025
+  },
+  {
+    "job": "final_finetune_pooled3_noise_zeroshot",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 530.3609707355499
+  },
+  {
+    "job": "final_finetune_pooled3_noise",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 477.0734782218933
+  }
+]

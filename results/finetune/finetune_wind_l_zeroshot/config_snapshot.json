@@ -1,0 +1,14 @@
+{
+  "experiment": {
+    "name": "finetune_wind_l",
+    "data": "era5_1p5deg_south_asia",
+    "model": "wind_l",
+    "train": "finetune",
+    "evaluation": "pilot",
+    "seed": 42,
+    "pilot_train": "pilot",
+    "pretrained": "pilot/pilot_wind_l/milestone_022500.pt",
+    "adaptation": "full"
+  },
+  "pretrained": "/kaggle/input/datasets/thesyeddaniyal/spheridiff-checkpoints-finetune/pilot/pilot_wind_l/milestone_022500.pt"
+}

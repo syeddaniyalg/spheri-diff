@@ -1,0 +1,170 @@
+[
+  {
+    "job": "finetune_wind_s",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 249.87495136260986
+  },
+  {
+    "job": "finetune_wind_m",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 209.79194903373718
+  },
+  {
+    "job": "finetune_wind_l",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 212.83773398399353
+  },
+  {
+    "job": "final_finetune_wind_s_zeroshot",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 352.9863705635071
+  },
+  {
+    "job": "final_finetune_wind_m_zeroshot",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 334.96245670318604
+  },
+  {
+    "job": "final_finetune_wind_l_zeroshot",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 341.04152965545654
+  },
+  {
+    "job": "final_finetune_wind_s",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 341.65737867355347
+  },
+  {
+    "job": "final_finetune_wind_m",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 348.98232555389404
+  },
+  {
+    "job": "final_finetune_wind_l",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 349.94883155822754
+  },
+  {
+    "job": "finetune_spheridiff_l31_xs",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 143.45657324790955
+  },
+  {
+    "job": "finetune_spheridiff_l31_s",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 183.71116542816162
+  },
+  {
+    "job": "finetune_spheridiff_l31_m",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 234.87505459785461
+  },
+  {
+    "job": "finetune_spheridiff_l31_b4",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 378.21234035491943
+  },
+  {
+    "job": "finetune_spheridiff_b4_l16",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 383.0897159576416
+  },
+  {
+    "job": "finetune_spheridiff_l31_b4_delta_only",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 347.0484666824341
+  },
+  {
+    "job": "finetune_spheridiff_b4_l16_delta_only",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 349.667592048645
+  },
+  {
+    "job": "final_finetune_spheridiff_l31_xs_zeroshot",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 206.61967968940735
+  },
+  {
+    "job": "final_finetune_spheridiff_l31_s_zeroshot",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 323.8716711997986
+  },
+  {
+    "job": "final_finetune_spheridiff_l31_m_zeroshot",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 312.73329877853394
+  },
+  {
+    "job": "final_finetune_spheridiff_l31_b4_zeroshot",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 528.7779445648193
+  },
+  {
+    "job": "final_finetune_spheridiff_b4_l16_zeroshot",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 528.8553643226624
+  },
+  {
+    "job": "final_finetune_spheridiff_l31_xs",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 176.372004032135
+  },
+  {
+    "job": "final_finetune_spheridiff_l31_s",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 291.55718183517456
+  },
+  {
+    "job": "final_finetune_spheridiff_l31_m",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 292.556027173996
+  },
+  {
+    "job": "final_finetune_spheridiff_l31_b4",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 528.8567533493042
+  },
+  {
+    "job": "final_finetune_spheridiff_b4_l16",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 529.3732514381409
+  },
+  {
+    "job": "final_finetune_spheridiff_l31_b4_delta_only",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 528.9189772605896
+  },
+  {
+    "job": "final_finetune_spheridiff_b4_l16_delta_only",
+    "gpu": 1,
+    "returncode": 0,
+    "seconds": 528.9342889785767
+  }
+]

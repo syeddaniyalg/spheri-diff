@@ -35,6 +35,7 @@ POOLED_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_pooled.ipynb"
 POOLED_FIXES_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_pooled_fixes.ipynb"
 NOISE_COEFF_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_pooled_noise_coeff.ipynb"
 LOCAL_HYBRID_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_local_hybrid.ipynb"
+CHANNEL_MIXING_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_channel_mixing.ipynb"
 RANK_NOTEBOOK = PROJECT_ROOT / "notebooks" / "colab_pilot_l31_rank128.ipynb"
 NOTEBOOKS = [
     NOTEBOOK,
@@ -263,6 +264,15 @@ def test_local_hybrid_notebook_runs_one_variant_per_gpu():
         for prefix in ("pilot", "finetune"):
             assert (CONFIG_ROOT / "experiments" / f"{prefix}_{variant}.yaml").exists()
     assert "local_hybrid_results.zip" in source and "DEADLINE" not in source
+
+
+def test_channel_mixing_notebook_runs_its_one_variant_in_one_queue():
+    source = notebook_source(CHANNEL_MIXING_NOTEBOOK)
+    assert 'VARIANTS = ["pooled3_channel"]' in source
+    assert "PLACEMENT = [(0, queue(VARIANTS))]" in source
+    for prefix in ("pilot", "finetune"):
+        assert (CONFIG_ROOT / "experiments" / f"{prefix}_pooled3_channel.yaml").exists()
+    assert "channel_mixing_results.zip" in source and "DEADLINE" not in source
 
 
 def test_time_matched_config_changes_only_the_length():

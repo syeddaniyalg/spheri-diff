@@ -1,0 +1,14 @@
+{
+  "experiment": {
+    "name": "finetune_pooled3_noise_coeff",
+    "data": "era5_1p5deg_south_asia",
+    "model": "spheridiff_pooled3_noise_coeff_regional",
+    "train": "finetune",
+    "evaluation": "pilot",
+    "seed": 42,
+    "pilot_train": "pilot",
+    "pretrained": "pilot_pooled3_noise_coeff/ema_weights.pt",
+    "adaptation": "delta_and_pointwise"
+  },
+  "pretrained": "/kaggle/working/runs/pilot_pooled3_noise_coeff/ema_weights.pt"
+}

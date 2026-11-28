@@ -4,7 +4,8 @@ from functools import lru_cache
 import numpy as np
 import torch
 
-from .harmonics import real_harmonics
+from .harmonics import harmonics_of_degree, real_harmonics
+from .legendre import normalised_legendre
 from .transform import MatrixTransform
 
 QUADRATURE_POINTS = 64
@@ -144,3 +145,9 @@ class KernelSlepianTransform(MatrixTransform):
         degrees = math.isqrt(count)
         harmonics = real_harmonics(self.quadrature_latitudes, self.quadrature_longitudes, degrees)
         return torch.tensor(harmonics.T @ self.weights, dtype=torch.float32)
+
+    def degree_blocks(self):
+        legendre = normalised_legendre(self.degrees, np.sin(np.radians(self.quadrature_latitudes)))
+        phi = np.radians(self.quadrature_longitudes)
+        for degree in range(self.degrees):
+            yield harmonics_of_degree(legendre, phi, degree).T @ self.weights

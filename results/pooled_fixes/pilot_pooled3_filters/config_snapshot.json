@@ -1,0 +1,109 @@
+{
+  "experiment": {
+    "name": "pilot_pooled3_filters",
+    "data": "era5_5p6deg",
+    "model": "spheridiff_pooled3_filters",
+    "train": "pilot_25k",
+    "evaluation": "pilot",
+    "seed": 42,
+    "pilot_train": "pilot",
+    "pretrained": null,
+    "adaptation": "full"
+  },
+  "train": {
+    "steps": 25000,
+    "batch_size": 16,
+    "learning_rate": 0.0003,
+    "min_learning_rate": 1e-06,
+    "warmup_fraction": 0.05,
+    "weight_decay": 0.0,
+    "gradient_clip": 0.8,
+    "ema_decay": 0.999,
+    "precision": "fp16",
+    "evaluate_every": 1250,
+    "checkpoint_every": 1250,
+    "source_levels": [
+      50,
+      100,
+      150,
+      200,
+      250,
+      300,
+      400,
+      500,
+      600,
+      700,
+      850,
+      925,
+      1000
+    ],
+    "evaluation": {
+      "windows": 32,
+      "members": 3,
+      "ddim_steps": 15,
+      "batch_size": 16,
+      "levels": [
+        0.1,
+        0.3,
+        0.5,
+        0.7,
+        0.9
+      ],
+      "fields": [
+        "500_geopotential",
+        "850_temperature",
+        "2m_temperature",
+        "10m_u_component_of_wind",
+        "mean_sea_level_pressure",
+        "700_specific_humidity"
+      ],
+      "seed": 42
+    },
+    "train_split": "train",
+    "fixed_windows": 0,
+    "max_seconds": 0.0,
+    "milestones": [
+      0.25,
+      0.5,
+      0.75
+    ],
+    "cooldown_start": 0,
+    "cooldown_peak": 0.0
+  },
+  "model": {
+    "name": "spheridiff_pooled",
+    "noise": "spectral",
+    "projection": "band_limit",
+    "architecture": {
+      "base_width": 64,
+      "levels": 3,
+      "heads": 4,
+      "spectral_precision": "fp16",
+      "degree_filters": true
+    },
+    "sphere": {
+      "bandlimit": 31,
+      "analysis": "least_squares"
+    }
+  },
+  "parameters": 2669886,
+  "data": {
+    "cache_root": "/kaggle/input/datasets/thesyeddaniyal/era5-pilot-6degrees/era5_5p6deg",
+    "splits": {
+      "train": [
+        2010,
+        2019
+      ],
+      "val": [
+        2020,
+        2020
+      ],
+      "test": [
+        2021,
+        2021
+      ]
+    }
+  },
+  "torch": "2.11.0+cu130",
+  "device": "Tesla T4"
+}

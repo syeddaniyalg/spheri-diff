@@ -16,6 +16,10 @@ A small first experiment with SpherIDiff, run before a full experiment. It inclu
 - **Final evaluation**: the fixed protocol on the held-out test year, for forecasting and six reconstruction tasks, each solved with guidance and without it. See [docs/pilot/final_evaluation.md](docs/pilot/final_evaluation.md).
 - **Smoke test**: the short checks that precede the pilot run, with a Kaggle notebook. See [docs/pilot/smoke.md](docs/pilot/smoke.md).
 
+### Paper
+
+The report of the pilot experiment in the NeurIPS preprint format, with the script that produces its figures. See [paper/README.md](paper/README.md).
+
 ### Results
 
 Small result files of the experiments. See [results/README.md](results/README.md).

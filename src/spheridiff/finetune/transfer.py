@@ -3,6 +3,7 @@ import torch
 ADAPTATIONS = ("full", "delta_and_pointwise", "delta_only")
 RESTRICTED_SUFFIX = "spectral.restricted"
 DELTA_SUFFIX = "spectral.delta"
+NEW_KNOT_SUFFIXES = ("spectral.isotropic_new", "spectral.zonal_new")
 
 
 def pretrained_weights(path):
@@ -52,7 +53,7 @@ def restricted_value(name, parameter, weights, module):
 
 
 def transferred_value(name, parameter, weights, module):
-    if name.endswith(DELTA_SUFFIX):
+    if name.endswith(DELTA_SUFFIX) or name.endswith(NEW_KNOT_SUFFIXES):
         return torch.zeros_like(parameter)
     if name.endswith(RESTRICTED_SUFFIX):
         return restricted_value(name, parameter, weights, module)

@@ -1,0 +1,223 @@
+final evaluation:   0%|          | 0/1 [00:00<?, ?it/s]
+forecast evaluation:   0%|          | 0/16 [00:00<?, ?it/s][A
+forecast evaluation:   6%|▋         | 1/16 [00:02<00:44,  2.95s/it][A
+forecast evaluation:  12%|█▎        | 2/16 [00:05<00:36,  2.64s/it][A
+forecast evaluation:  19%|█▉        | 3/16 [00:07<00:32,  2.53s/it][A
+forecast evaluation:  25%|██▌       | 4/16 [00:10<00:29,  2.45s/it][A
+forecast evaluation:  31%|███▏      | 5/16 [00:12<00:26,  2.41s/it][A
+forecast evaluation:  38%|███▊      | 6/16 [00:14<00:24,  2.40s/it][A
+forecast evaluation:  44%|████▍     | 7/16 [00:17<00:21,  2.39s/it][A
+forecast evaluation:  50%|█████     | 8/16 [00:19<00:18,  2.37s/it][A
+forecast evaluation:  56%|█████▋    | 9/16 [00:21<00:16,  2.36s/it][A
+forecast evaluation:  62%|██████▎   | 10/16 [00:24<00:14,  2.42s/it][A
+forecast evaluation:  69%|██████▉   | 11/16 [00:26<00:12,  2.41s/it][A
+forecast evaluation:  75%|███████▌  | 12/16 [00:29<00:09,  2.41s/it][A
+forecast evaluation:  81%|████████▏ | 13/16 [00:31<00:07,  2.41s/it][A
+forecast evaluation:  88%|████████▊ | 14/16 [00:34<00:04,  2.41s/it][A
+forecast evaluation:  94%|█████████▍| 15/16 [00:36<00:02,  2.40s/it][A
+forecast evaluation: 100%|██████████| 16/16 [00:38<00:00,  2.38s/it][A
+                                                                    [A
+spatial_reconstruction baseline:   0%|          | 0/16 [00:00<?, ?it/s][A
+                                                                       [A
+spatial_reconstruction mmps:   0%|          | 0/16 [00:00<?, ?it/s][A
+spatial_reconstruction mmps:   6%|▋         | 1/16 [00:02<00:40,  2.70s/it][A
+spatial_reconstruction mmps:  12%|█▎        | 2/16 [00:04<00:33,  2.43s/it][A
+spatial_reconstruction mmps:  19%|█▉        | 3/16 [00:07<00:29,  2.31s/it][A
+spatial_reconstruction mmps:  25%|██▌       | 4/16 [00:09<00:26,  2.25s/it][A
+spatial_reconstruction mmps:  31%|███▏      | 5/16 [00:11<00:24,  2.25s/it][A
+spatial_reconstruction mmps:  38%|███▊      | 6/16 [00:13<00:22,  2.22s/it][A
+spatial_reconstruction mmps:  44%|████▍     | 7/16 [00:15<00:20,  2.23s/it][A
+spatial_reconstruction mmps:  50%|█████     | 8/16 [00:18<00:17,  2.24s/it][A
+spatial_reconstruction mmps:  56%|█████▋    | 9/16 [00:20<00:15,  2.27s/it][A
+spatial_reconstruction mmps:  62%|██████▎   | 10/16 [00:22<00:13,  2.23s/it][A
+spatial_reconstruction mmps:  69%|██████▉   | 11/16 [00:24<00:11,  2.26s/it][A
+spatial_reconstruction mmps:  75%|███████▌  | 12/16 [00:27<00:08,  2.25s/it][A
+spatial_reconstruction mmps:  81%|████████▏ | 13/16 [00:29<00:06,  2.23s/it][A
+spatial_reconstruction mmps:  88%|████████▊ | 14/16 [00:31<00:04,  2.21s/it][A
+spatial_reconstruction mmps:  94%|█████████▍| 15/16 [00:33<00:02,  2.21s/it][A
+spatial_reconstruction mmps: 100%|██████████| 16/16 [00:35<00:00,  2.20s/it][A
+                                                                            [A
+spatial_reconstruction native:   0%|          | 0/16 [00:00<?, ?it/s][A
+spatial_reconstruction native:  19%|█▉        | 3/16 [00:01<00:06,  2.06it/s][A
+spatial_reconstruction native:  38%|███▊      | 6/16 [00:02<00:04,  2.06it/s][A
+spatial_reconstruction native:  56%|█████▋    | 9/16 [00:04<00:03,  2.04it/s][A
+spatial_reconstruction native:  75%|███████▌  | 12/16 [00:05<00:01,  2.04it/s][A
+spatial_reconstruction native:  94%|█████████▍| 15/16 [00:07<00:00,  2.05it/s][A
+                                                                              [A
+spatial_reconstruction native_init:   0%|          | 0/16 [00:00<?, ?it/s][A
+spatial_reconstruction native_init:  25%|██▌       | 4/16 [00:01<00:03,  3.44it/s][A
+spatial_reconstruction native_init:  50%|█████     | 8/16 [00:02<00:02,  3.68it/s][A
+spatial_reconstruction native_init:  75%|███████▌  | 12/16 [00:03<00:01,  3.78it/s][A
+spatial_reconstruction native_init: 100%|██████████| 16/16 [00:04<00:00,  3.75it/s][A
+                                                                                   [A
+spatial_downsampling baseline:   0%|          | 0/16 [00:00<?, ?it/s][A
+                                                                     [A
+spatial_downsampling mmps:   0%|          | 0/16 [00:00<?, ?it/s][A
+spatial_downsampling mmps:   6%|▋         | 1/16 [00:02<00:33,  2.21s/it][A
+spatial_downsampling mmps:  12%|█▎        | 2/16 [00:04<00:30,  2.21s/it][A
+spatial_downsampling mmps:  19%|█▉        | 3/16 [00:06<00:28,  2.21s/it][A
+spatial_downsampling mmps:  25%|██▌       | 4/16 [00:08<00:26,  2.21s/it][A
+spatial_downsampling mmps:  31%|███▏      | 5/16 [00:11<00:24,  2.20s/it][A
+spatial_downsampling mmps:  38%|███▊      | 6/16 [00:13<00:22,  2.21s/it][A
+spatial_downsampling mmps:  44%|████▍     | 7/16 [00:15<00:19,  2.20s/it][A
+spatial_downsampling mmps:  50%|█████     | 8/16 [00:17<00:17,  2.23s/it][A
+spatial_downsampling mmps:  56%|█████▋    | 9/16 [00:19<00:15,  2.22s/it][A
+spatial_downsampling mmps:  62%|██████▎   | 10/16 [00:22<00:13,  2.21s/it][A
+spatial_downsampling mmps:  69%|██████▉   | 11/16 [00:24<00:10,  2.20s/it][A
+spatial_downsampling mmps:  75%|███████▌  | 12/16 [00:26<00:08,  2.19s/it][A
+spatial_downsampling mmps:  81%|████████▏ | 13/16 [00:28<00:06,  2.20s/it][A
+spatial_downsampling mmps:  88%|████████▊ | 14/16 [00:30<00:04,  2.21s/it][A
+spatial_downsampling mmps:  94%|█████████▍| 15/16 [00:33<00:02,  2.32s/it][A
+spatial_downsampling mmps: 100%|██████████| 16/16 [00:35<00:00,  2.31s/it][A
+                                                                          [A
+spatial_downsampling native:   0%|          | 0/16 [00:00<?, ?it/s][A
+spatial_downsampling native:  12%|█▎        | 2/16 [00:01<00:07,  1.93it/s][A
+spatial_downsampling native:  31%|███▏      | 5/16 [00:02<00:05,  2.02it/s][A
+spatial_downsampling native:  50%|█████     | 8/16 [00:03<00:03,  2.04it/s][A
+spatial_downsampling native:  69%|██████▉   | 11/16 [00:05<00:02,  2.05it/s][A
+spatial_downsampling native:  88%|████████▊ | 14/16 [00:06<00:00,  2.06it/s][A
+                                                                            [A
+spatial_downsampling native_init:   0%|          | 0/16 [00:00<?, ?it/s][A
+spatial_downsampling native_init:  25%|██▌       | 4/16 [00:01<00:03,  3.87it/s][A
+spatial_downsampling native_init:  50%|█████     | 8/16 [00:02<00:02,  3.74it/s][A
+spatial_downsampling native_init:  75%|███████▌  | 12/16 [00:03<00:01,  3.62it/s][A
+spatial_downsampling native_init: 100%|██████████| 16/16 [00:04<00:00,  3.75it/s][A
+                                                                                 [A
+temporal_reconstruction baseline:   0%|          | 0/16 [00:00<?, ?it/s][A
+                                                                        [A
+temporal_reconstruction mmps:   0%|          | 0/16 [00:00<?, ?it/s][A
+temporal_reconstruction mmps:   6%|▋         | 1/16 [00:02<00:35,  2.37s/it][A
+temporal_reconstruction mmps:  12%|█▎        | 2/16 [00:04<00:31,  2.24s/it][A
+temporal_reconstruction mmps:  19%|█▉        | 3/16 [00:06<00:28,  2.21s/it][A
+temporal_reconstruction mmps:  25%|██▌       | 4/16 [00:08<00:26,  2.20s/it][A
+temporal_reconstruction mmps:  31%|███▏      | 5/16 [00:11<00:24,  2.19s/it][A
+temporal_reconstruction mmps:  38%|███▊      | 6/16 [00:13<00:21,  2.19s/it][A
+temporal_reconstruction mmps:  44%|████▍     | 7/16 [00:15<00:19,  2.20s/it][A
+temporal_reconstruction mmps:  50%|█████     | 8/16 [00:17<00:17,  2.19s/it][A
+temporal_reconstruction mmps:  56%|█████▋    | 9/16 [00:19<00:15,  2.19s/it][A
+temporal_reconstruction mmps:  62%|██████▎   | 10/16 [00:21<00:13,  2.18s/it][A
+temporal_reconstruction mmps:  69%|██████▉   | 11/16 [00:24<00:10,  2.18s/it][A
+temporal_reconstruction mmps:  75%|███████▌  | 12/16 [00:26<00:08,  2.17s/it][A
+temporal_reconstruction mmps:  81%|████████▏ | 13/16 [00:28<00:06,  2.18s/it][A
+temporal_reconstruction mmps:  88%|████████▊ | 14/16 [00:30<00:04,  2.20s/it][A
+temporal_reconstruction mmps:  94%|█████████▍| 15/16 [00:32<00:02,  2.19s/it][A
+temporal_reconstruction mmps: 100%|██████████| 16/16 [00:35<00:00,  2.19s/it][A
+                                                                             [A
+temporal_reconstruction native:   0%|          | 0/16 [00:00<?, ?it/s][A
+temporal_reconstruction native:  12%|█▎        | 2/16 [00:01<00:07,  1.94it/s][A
+temporal_reconstruction native:  25%|██▌       | 4/16 [00:02<00:06,  1.94it/s][A
+temporal_reconstruction native:  44%|████▍     | 7/16 [00:03<00:04,  2.03it/s][A
+temporal_reconstruction native:  62%|██████▎   | 10/16 [00:04<00:02,  2.05it/s][A
+temporal_reconstruction native:  81%|████████▏ | 13/16 [00:06<00:01,  2.08it/s][A
+temporal_reconstruction native: 100%|██████████| 16/16 [00:07<00:00,  2.08it/s][A
+                                                                               [A
+temporal_reconstruction native_init:   0%|          | 0/16 [00:00<?, ?it/s][A
+temporal_reconstruction native_init:  25%|██▌       | 4/16 [00:01<00:03,  3.56it/s][A
+temporal_reconstruction native_init:  50%|█████     | 8/16 [00:02<00:02,  3.55it/s][A
+temporal_reconstruction native_init:  75%|███████▌  | 12/16 [00:03<00:01,  3.65it/s][A
+temporal_reconstruction native_init: 100%|██████████| 16/16 [00:04<00:00,  3.70it/s][A
+                                                                                    [A
+temporal_downsampling baseline:   0%|          | 0/16 [00:00<?, ?it/s][A
+                                                                      [A
+temporal_downsampling mmps:   0%|          | 0/16 [00:00<?, ?it/s][A
+temporal_downsampling mmps:   6%|▋         | 1/16 [00:02<00:33,  2.26s/it][A
+temporal_downsampling mmps:  12%|█▎        | 2/16 [00:04<00:31,  2.22s/it][A
+temporal_downsampling mmps:  19%|█▉        | 3/16 [00:06<00:28,  2.21s/it][A
+temporal_downsampling mmps:  25%|██▌       | 4/16 [00:08<00:26,  2.20s/it][A
+temporal_downsampling mmps:  31%|███▏      | 5/16 [00:11<00:24,  2.19s/it][A
+temporal_downsampling mmps:  38%|███▊      | 6/16 [00:13<00:22,  2.21s/it][A
+temporal_downsampling mmps:  44%|████▍     | 7/16 [00:15<00:19,  2.20s/it][A
+temporal_downsampling mmps:  50%|█████     | 8/16 [00:17<00:17,  2.19s/it][A
+temporal_downsampling mmps:  56%|█████▋    | 9/16 [00:19<00:15,  2.19s/it][A
+temporal_downsampling mmps:  62%|██████▎   | 10/16 [00:22<00:13,  2.21s/it][A
+temporal_downsampling mmps:  69%|██████▉   | 11/16 [00:24<00:10,  2.20s/it][A
+temporal_downsampling mmps:  75%|███████▌  | 12/16 [00:26<00:08,  2.19s/it][A
+temporal_downsampling mmps:  81%|████████▏ | 13/16 [00:28<00:06,  2.22s/it][A
+temporal_downsampling mmps:  88%|████████▊ | 14/16 [00:31<00:04,  2.28s/it][A
+temporal_downsampling mmps:  94%|█████████▍| 15/16 [00:33<00:02,  2.27s/it][A
+temporal_downsampling mmps: 100%|██████████| 16/16 [00:35<00:00,  2.25s/it][A
+                                                                           [A
+temporal_downsampling native:   0%|          | 0/16 [00:00<?, ?it/s][A
+temporal_downsampling native:  19%|█▉        | 3/16 [00:01<00:06,  2.03it/s][A
+temporal_downsampling native:  38%|███▊      | 6/16 [00:02<00:04,  2.04it/s][A
+temporal_downsampling native:  56%|█████▋    | 9/16 [00:04<00:03,  2.05it/s][A
+temporal_downsampling native:  75%|███████▌  | 12/16 [00:05<00:01,  2.02it/s][A
+temporal_downsampling native:  94%|█████████▍| 15/16 [00:07<00:00,  2.04it/s][A
+                                                                             [A
+temporal_downsampling native_init:   0%|          | 0/16 [00:00<?, ?it/s][A
+temporal_downsampling native_init:  25%|██▌       | 4/16 [00:01<00:03,  3.60it/s][A
+temporal_downsampling native_init:  50%|█████     | 8/16 [00:02<00:02,  3.70it/s][A
+temporal_downsampling native_init:  75%|███████▌  | 12/16 [00:03<00:01,  3.76it/s][A
+temporal_downsampling native_init: 100%|██████████| 16/16 [00:04<00:00,  3.78it/s][A
+                                                                                  [A
+spatiotemporal_downsampling baseline:   0%|          | 0/16 [00:00<?, ?it/s][A
+                                                                            [A
+spatiotemporal_downsampling mmps:   0%|          | 0/16 [00:00<?, ?it/s][A
+spatiotemporal_downsampling mmps:   6%|▋         | 1/16 [00:02<00:33,  2.21s/it][A
+spatiotemporal_downsampling mmps:  12%|█▎        | 2/16 [00:04<00:31,  2.25s/it][A
+spatiotemporal_downsampling mmps:  19%|█▉        | 3/16 [00:06<00:28,  2.21s/it][A
+spatiotemporal_downsampling mmps:  25%|██▌       | 4/16 [00:08<00:26,  2.20s/it][A
+spatiotemporal_downsampling mmps:  31%|███▏      | 5/16 [00:11<00:24,  2.19s/it][A
+spatiotemporal_downsampling mmps:  38%|███▊      | 6/16 [00:13<00:21,  2.20s/it][A
+spatiotemporal_downsampling mmps:  44%|████▍     | 7/16 [00:15<00:19,  2.21s/it][A
+spatiotemporal_downsampling mmps:  50%|█████     | 8/16 [00:17<00:17,  2.20s/it][A
+spatiotemporal_downsampling mmps:  56%|█████▋    | 9/16 [00:19<00:15,  2.19s/it][A
+spatiotemporal_downsampling mmps:  62%|██████▎   | 10/16 [00:22<00:13,  2.19s/it][A
+spatiotemporal_downsampling mmps:  69%|██████▉   | 11/16 [00:24<00:11,  2.22s/it][A
+spatiotemporal_downsampling mmps:  75%|███████▌  | 12/16 [00:26<00:08,  2.20s/it][A
+spatiotemporal_downsampling mmps:  81%|████████▏ | 13/16 [00:28<00:06,  2.22s/it][A
+spatiotemporal_downsampling mmps:  88%|████████▊ | 14/16 [00:31<00:04,  2.30s/it][A
+spatiotemporal_downsampling mmps:  94%|█████████▍| 15/16 [00:33<00:02,  2.27s/it][A
+spatiotemporal_downsampling mmps: 100%|██████████| 16/16 [00:35<00:00,  2.28s/it][A
+                                                                                 [A
+spatiotemporal_downsampling native:   0%|          | 0/16 [00:00<?, ?it/s][A
+spatiotemporal_downsampling native:  19%|█▉        | 3/16 [00:01<00:06,  2.12it/s][A
+spatiotemporal_downsampling native:  38%|███▊      | 6/16 [00:02<00:04,  2.12it/s][A
+spatiotemporal_downsampling native:  56%|█████▋    | 9/16 [00:04<00:03,  2.11it/s][A
+spatiotemporal_downsampling native:  75%|███████▌  | 12/16 [00:05<00:01,  2.10it/s][A
+spatiotemporal_downsampling native:  94%|█████████▍| 15/16 [00:07<00:00,  2.06it/s][A
+                                                                                   [A
+spatiotemporal_downsampling native_init:   0%|          | 0/16 [00:00<?, ?it/s][A
+spatiotemporal_downsampling native_init:  25%|██▌       | 4/16 [00:01<00:03,  3.61it/s][A
+spatiotemporal_downsampling native_init:  50%|█████     | 8/16 [00:02<00:02,  3.74it/s][A
+spatiotemporal_downsampling native_init:  75%|███████▌  | 12/16 [00:03<00:01,  3.77it/s][A
+spatiotemporal_downsampling native_init: 100%|██████████| 16/16 [00:04<00:00,  3.76it/s][A
+                                                                                        [A
+spatiotemporal_reconstruction baseline:   0%|          | 0/16 [00:00<?, ?it/s][A
+                                                                              [A
+spatiotemporal_reconstruction mmps:   0%|          | 0/16 [00:00<?, ?it/s][A
+spatiotemporal_reconstruction mmps:   6%|▋         | 1/16 [00:02<00:33,  2.22s/it][A
+spatiotemporal_reconstruction mmps:  12%|█▎        | 2/16 [00:04<00:30,  2.21s/it][A
+spatiotemporal_reconstruction mmps:  19%|█▉        | 3/16 [00:06<00:28,  2.22s/it][A
+spatiotemporal_reconstruction mmps:  25%|██▌       | 4/16 [00:08<00:26,  2.21s/it][A
+spatiotemporal_reconstruction mmps:  31%|███▏      | 5/16 [00:11<00:24,  2.21s/it][A
+spatiotemporal_reconstruction mmps:  38%|███▊      | 6/16 [00:13<00:22,  2.20s/it][A
+spatiotemporal_reconstruction mmps:  44%|████▍     | 7/16 [00:15<00:20,  2.24s/it][A
+spatiotemporal_reconstruction mmps:  50%|█████     | 8/16 [00:17<00:17,  2.24s/it][A
+spatiotemporal_reconstruction mmps:  56%|█████▋    | 9/16 [00:19<00:15,  2.22s/it][A
+spatiotemporal_reconstruction mmps:  62%|██████▎   | 10/16 [00:22<00:13,  2.21s/it][A
+spatiotemporal_reconstruction mmps:  69%|██████▉   | 11/16 [00:24<00:11,  2.21s/it][A
+spatiotemporal_reconstruction mmps:  75%|███████▌  | 12/16 [00:26<00:08,  2.22s/it][A
+spatiotemporal_reconstruction mmps:  81%|████████▏ | 13/16 [00:28<00:06,  2.21s/it][A
+spatiotemporal_reconstruction mmps:  88%|████████▊ | 14/16 [00:31<00:04,  2.23s/it][A
+spatiotemporal_reconstruction mmps:  94%|█████████▍| 15/16 [00:34<00:02,  2.48s/it][A
+spatiotemporal_reconstruction mmps: 100%|██████████| 16/16 [00:39<00:00,  3.32s/it][A
+                                                                                   [A
+spatiotemporal_reconstruction native:   0%|          | 0/16 [00:00<?, ?it/s][A
+spatiotemporal_reconstruction native:  12%|█▎        | 2/16 [00:01<00:10,  1.36it/s][A
+spatiotemporal_reconstruction native:  25%|██▌       | 4/16 [00:03<00:09,  1.27it/s][A
+spatiotemporal_reconstruction native:  38%|███▊      | 6/16 [00:04<00:08,  1.23it/s][A
+spatiotemporal_reconstruction native:  50%|█████     | 8/16 [00:06<00:06,  1.25it/s][A
+spatiotemporal_reconstruction native:  62%|██████▎   | 10/16 [00:08<00:04,  1.24it/s][A
+spatiotemporal_reconstruction native:  75%|███████▌  | 12/16 [00:09<00:03,  1.20it/s][A
+spatiotemporal_reconstruction native:  88%|████████▊ | 14/16 [00:11<00:01,  1.24it/s][A
+spatiotemporal_reconstruction native: 100%|██████████| 16/16 [00:13<00:00,  1.17it/s][A
+                                                                                     [A
+spatiotemporal_reconstruction native_init:   0%|          | 0/16 [00:00<?, ?it/s][A
+spatiotemporal_reconstruction native_init:  19%|█▉        | 3/16 [00:01<00:05,  2.19it/s][A
+spatiotemporal_reconstruction native_init:  38%|███▊      | 6/16 [00:02<00:04,  2.26it/s][A
+spatiotemporal_reconstruction native_init:  56%|█████▋    | 9/16 [00:03<00:03,  2.27it/s][A
+spatiotemporal_reconstruction native_init:  75%|███████▌  | 12/16 [00:05<00:01,  2.31it/s][A
+spatiotemporal_reconstruction native_init:  94%|█████████▍| 15/16 [00:06<00:00,  2.36it/s][A
+                                                                                          [A                                                       saved the final evaluation of finetune_wind_l_zeroshot
+final evaluation:   0%|          | 0/1 [05:37<?, ?it/s]final evaluation: 100%|██████████| 1/1 [05:37<00:00, 337.37s/it]final evaluation: 100%|██████████| 1/1 [05:37<00:00, 337.37s/it]

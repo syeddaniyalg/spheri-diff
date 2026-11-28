@@ -1,0 +1,32 @@
+[
+  {
+    "job": "pilot_pooled3_noise_coeff",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 4202.526421546936
+  },
+  {
+    "job": "final_pilot_pooled3_noise_coeff",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 1674.61834025383
+  },
+  {
+    "job": "finetune_pooled3_noise_coeff",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 263.3701000213623
+  },
+  {
+    "job": "final_finetune_pooled3_noise_coeff_zeroshot",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 458.4479739665985
+  },
+  {
+    "job": "final_finetune_pooled3_noise_coeff",
+    "gpu": 0,
+    "returncode": 0,
+    "seconds": 462.46150398254395
+  }
+]

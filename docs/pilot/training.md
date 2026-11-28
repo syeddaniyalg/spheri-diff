@@ -126,6 +126,8 @@ The variant that combines noise conditioning with coefficient filters (`pooled3_
 
 The two models with local processing (see [models.md](models.md#local-processing)) are run by `notebooks/kaggle_pilot_local_hybrid.ipynb`, with the same pipeline: the pooled model with the spherical convolution (`pooled3_disco`) on the first GPU and the hybrid U-ViT (`hybrid`) on the second. Their results are packed into `local_hybrid_results.zip`.
 
+The pooled model with per-degree channel mixing (`pooled3_channel`, see [models.md](models.md#per-degree-channel-mixing)) is run on its own by `notebooks/kaggle_pilot_channel_mixing.ipynb`, with the same pipeline on the first GPU. Each job needs the output of the job before it, so a second GPU is not used. The results are packed into `channel_mixing_results.zip`. In a local test of 1,000 steps on the RTX 4050, with the settings of the earlier 1,000-step tests (four training years and 8 validation windows), it reached a validation nRMSE of 0.469 against 0.535 for `pooled3_disco`, at 0.191 against 0.199 seconds per step.
+
 ## Cooldown test of the step budget
 
 Under the cosine schedule the late part of a learning curve flattens partly because the learning rate decays, so the curve alone does not show how many steps a run needed. The cooldown test measures this from the milestone checkpoints of the main pilot, without training the runs again.
