@@ -1,0 +1,6 @@
+name: pilot_wind_m_25k
+data: era5_5p6deg
+model: wind_m
+train: pilot_25k
+evaluation: pilot
+seed: 42

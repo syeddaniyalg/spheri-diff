@@ -128,6 +128,10 @@ The two models with local processing (see [models.md](models.md#local-processing
 
 The pooled model with per-degree channel mixing (`pooled3_channel`, see [models.md](models.md#per-degree-channel-mixing)) is run on its own by `notebooks/kaggle_pilot_channel_mixing.ipynb`, with the same pipeline on the first GPU. Each job needs the output of the job before it, so a second GPU is not used. The results are packed into `channel_mixing_results.zip`. In a local test of 1,000 steps on the RTX 4050, with the settings of the earlier 1,000-step tests (four training years and 8 validation windows), it reached a validation nRMSE of 0.469 against 0.535 for `pooled3_disco`, at 0.191 against 0.199 seconds per step.
 
+## WIND-S and WIND-M with the 25,000-step budget
+
+The WIND references above were trained for 45,000 steps, before the budget was fixed at 25,000 steps. Their values at 25,000 steps lie in the middle of a longer cosine schedule, their final protocol uses the 45,000-step weights, and their fine-tuning starts from the 22,500-step milestone. For a fair comparison, `notebooks/kaggle_pilot_wind_25k.ipynb` trains WIND-S and WIND-M again under the settings of the SpherIDiff models: `pilot_wind_s_25k` and `pilot_wind_m_25k` (25,000 steps, `pilot_25k`), then `finetune_wind_s_25k` and `finetune_wind_m_25k` (5,000 steps from the EMA weights at 25,000 steps, all weights adapted). WIND-S runs on the first GPU and WIND-M on the second, each with the same pipeline as the SpherIDiff experiments. The experiments differ from those of `pooled3_channel` only in the model and the adapted weights. The results are packed into `wind_25k_results.zip`.
+
 ## Cooldown test of the step budget
 
 Under the cosine schedule the late part of a learning curve flattens partly because the learning rate decays, so the curve alone does not show how many steps a run needed. The cooldown test measures this from the milestone checkpoints of the main pilot, without training the runs again.

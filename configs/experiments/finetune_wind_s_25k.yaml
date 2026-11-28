@@ -1,0 +1,8 @@
+name: finetune_wind_s_25k
+data: era5_1p5deg_south_asia
+model: wind_s
+train: finetune
+evaluation: pilot
+seed: 42
+pretrained: pilot_wind_s_25k/ema_weights.pt
+adaptation: full

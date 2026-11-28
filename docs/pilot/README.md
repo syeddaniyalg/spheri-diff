@@ -9,6 +9,7 @@ The pilot experiment is a small first experiment with SpherIDiff, run before a f
 - **Training and evaluation**: the shared training settings, the saved files, the parallel background runs on Kaggle, the separate time-matched WIND-L run, the smaller SpherIDiff variants and the time-matched SpherIDiff run, the SpherIDiff runs at band limit 31, the rank ablation at band limit 31, the regional fine-tuning, the pooled SpherIDiff experiment and its targeted changes, the cooldown test of the step budget, the evaluation during training, and the full evaluation after training. See [training.md](training.md).
 - **Final evaluation**: the fixed protocol on the held-out test year, covering forecasting and six reconstruction tasks, each solved with guidance and with two forms of native denoising. See [final_evaluation.md](final_evaluation.md).
 - **Smoke test**: the short checks of both models before the pilot run, and the Kaggle notebook that runs them. See [smoke.md](smoke.md).
+- **Channel-mixing results**: the results of replacing the mode-mixing spectral weight with per-degree channel mixing, compared with the best earlier model and WIND-S, with their limits. See [channel_mixing_results.md](channel_mixing_results.md).
 - **Experiment log**: the whole pilot in chronological order, with the reason for each stage, its results, what is understood now and the open questions. See [experiment_log.md](experiment_log.md).
 - **Comparison with WIND**: the baseline comparison, summarised in [Comparison with WIND](#comparison-with-wind) below.
 

@@ -36,6 +36,7 @@ POOLED_FIXES_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_pooled_fixes.
 NOISE_COEFF_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_pooled_noise_coeff.ipynb"
 LOCAL_HYBRID_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_local_hybrid.ipynb"
 CHANNEL_MIXING_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_channel_mixing.ipynb"
+WIND_25K_NOTEBOOK = PROJECT_ROOT / "notebooks" / "kaggle_pilot_wind_25k.ipynb"
 RANK_NOTEBOOK = PROJECT_ROOT / "notebooks" / "colab_pilot_l31_rank128.ipynb"
 NOTEBOOKS = [
     NOTEBOOK,
@@ -199,7 +200,7 @@ def test_band_limit_31_notebook_trains_one_run_per_gpu_at_a_time():
 def test_finetune_notebook_keeps_wind_and_spheridiff_on_separate_gpus():
     source = notebook_source(FINETUNE_NOTEBOOK)
     for path in (CONFIG_ROOT / "experiments").glob("finetune_*.yaml"):
-        if not path.stem.startswith(("finetune_pooled", "finetune_hybrid")):
+        if not path.stem.startswith(("finetune_pooled", "finetune_hybrid", "finetune_wind_s_25k", "finetune_wind_m_25k")):
             assert f'"{path.stem}"' in source
     assert "PLACEMENT = [(0, queue(WIND_EXPERIMENTS)), (1, queue(SPHERIDIFF_EXPERIMENTS))]" in source
     assert "finetune_job(name, PRETRAINED_ROOT)" in source and "ZERO_SHOT_SUFFIX" in source
@@ -273,6 +274,23 @@ def test_channel_mixing_notebook_runs_its_one_variant_in_one_queue():
     for prefix in ("pilot", "finetune"):
         assert (CONFIG_ROOT / "experiments" / f"{prefix}_pooled3_channel.yaml").exists()
     assert "channel_mixing_results.zip" in source and "DEADLINE" not in source
+
+
+def test_wind_25k_notebook_runs_one_size_per_gpu():
+    source = notebook_source(WIND_25K_NOTEBOOK)
+    assert 'FIRST_GPU_VARIANTS = ["wind_s_25k"]' in source and 'SECOND_GPU_VARIANTS = ["wind_m_25k"]' in source
+    assert "PLACEMENT = [(0, queue(FIRST_GPU_VARIANTS)), (1, queue(SECOND_GPU_VARIANTS))]" in source
+    assert "wind_25k_results.zip" in source and "DEADLINE" not in source
+
+
+@pytest.mark.parametrize("size", ["wind_s", "wind_m"])
+def test_wind_25k_runs_under_the_spheridiff_settings(size):
+    wind, spheridiff = load_experiment(f"pilot_{size}_25k"), load_experiment("pilot_pooled3_channel")
+    assert (wind.model, wind.train) == (size, "pilot_25k")
+    assert (wind.data, wind.train, wind.evaluation, wind.seed) == (spheridiff.data, spheridiff.train, spheridiff.evaluation, spheridiff.seed)
+    tuned, reference = load_experiment(f"finetune_{size}_25k"), load_experiment("finetune_pooled3_channel")
+    assert tuned.pretrained == f"pilot_{size}_25k/ema_weights.pt" and tuned.adaptation == "full"
+    assert (tuned.data, tuned.train, tuned.evaluation, tuned.seed) == (reference.data, reference.train, reference.evaluation, reference.seed)
 
 
 def test_time_matched_config_changes_only_the_length():
